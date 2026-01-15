@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Profile | Payroll System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. GLASSMORPHISM THEME VARIABLES
+           ========================================= */
+        :root {
+            /* Light Mode Variables */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --text-main: #1e293b;
+            --text-main2: #1e293b;
+            --text-muted: #64748b;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+
+            /* Status Colors */
+            --status-active-bg: rgba(16, 185, 129, 0.1);
+            --status-active-text: #059669;
+        }
+
+        /* Dark Mode Variables */
+        body.dark-mode {
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            --text-main: #f1f5f9;
+            --text-main2: #94a3b8;
+            --text-muted: #94a3b8;
+
+            --status-active-bg: rgba(16, 185, 129, 0.2);
+            --status-active-text: #34d399;
+        }
+
+        /* =========================================
+           2. GLOBAL STYLES & BACKGROUND
+           ========================================= */
+        body {
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background Shapes */
+        .ambient-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .shape-1 {
+            top: 5%; left: -10%; width: 500px; height: 500px;
+            background: #818cf8;
+        }
+        .shape-2 {
+            bottom: 5%; right: -10%; width: 450px; height: 450px;
+            background: #34d399;
+        }
+        body.dark-mode .shape-1 { background: #4f46e5; opacity: 0.3; }
+        body.dark-mode .shape-2 { background: #059669; opacity: 0.2; }
+
+        .profile-container {
+            position: relative;
+            z-index: 1;
+            padding: 30px 20px;
+        }
+
+        /* =========================================
+           3. GLASS CARDS (FIXED OVERLAP)
+           ========================================= */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            padding: 0;
+            margin-bottom: 25px;
+            overflow: hidden; /* Clips content to rounded corners */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative; /* CRITICAL for absolute positioning inside */
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        /* =========================================
+           4. PROFILE LEFT (Banner & Avatar)
+           ========================================= */
+        .profile-banner {
+            height: 140px; /* Increased Height */
+            background: var(--primary-gradient);
+            position: relative;
+            width: 100%;
+        }
+
+        .profile-avatar-container {
+            position: absolute;
+            /* Banner Height (140) - Half Avatar Height (60) = 80px Top */
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid rgba(255, 255, 255, 0.9);
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background-color: #fff;
+        }
+        body.dark-mode .profile-avatar {
+            border-color: #1e293b; /* Matches dark card bg */
+            background-color: #1e293b;
+        }
+
+        .profile-header-info {
+            /* Top Padding = Half Avatar (60px) + Gap (20px) = 80px */
+            padding: 80px 20px 30px;
+            text-align: center;
+            position: relative;
+            z-index: 5;
+        }
+
+        .user-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .user-designation {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quick-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .q-stat-item { text-align: center; min-width: 80px; }
+        .q-val { display: block; font-weight: 700; font-size: 1.15rem; color: var(--text-main); }
+        .q-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+        /* =========================================
+           5. DETAILS RIGHT
+           ========================================= */
+        .details-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.05);
+        }
+        .details-title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+
+        .edit-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: 0.2s;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .edit-btn:hover { transform: translateY(-2px); color: white; box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4); }
+
+        .details-body { padding: 30px; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        .info-group { position: relative; }
+        .info-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .info-group div {
+            font-size: 1.05rem;
+            color: var(--text-main2);
+            font-weight: 600;
+            background: rgba(255,255,255,0.05); /* Subtle Input bg style */
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+        .info-group div:hover { border-color: var(--glass-border); }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            background: var(--status-active-bg);
+            color: var(--status-active-text);
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .status-dot { width: 8px; height: 8px; background: currentColor; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+
+        .salary-blur { filter: blur(5px); transition: 0.3s; cursor: pointer; user-select: none; }
+        .salary-blur:hover { filter: blur(0); }
+
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; gap: 20px; }
+            .profile-header-info { padding-top: 70px; } /* Adjust for mobile */
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <!-- Ambient Shapes -->
+    <div class="ambient-shape shape-1"></div>
+    <div class="ambient-shape shape-2"></div>
+
+    <div class="profile-container">
+        <div class="container-fluid">
+
+            <div class="row justify-content-center">
+
+                <!-- Left Column: Profile Overview -->
+                <div class="col-lg-4 col-md-5">
+                    <div class="glass-card">
+                        <div class="profile-banner"></div>
+
+                        <div class="profile-avatar-container">
+                            <img class="profile-avatar"
+                                 th:src="@{${employee.getPhotosImagePath()}}"
+                                 alt="User Profile">
+                        </div>
+
+                        <div class="profile-header-info">
+                            <h2 class="user-name" th:text="${employee.name}">User Name</h2>
+                            <p class="user-designation" th:text="${employee.designation}">Designation</p>
+
+                            <div class="d-flex justify-content-center">
+                                <span class="status-badge" th:text="${employee.status}">
+                                    <span class="status-dot"></span> Active
+                                </span>
+                            </div>
+
+                            <div class="quick-stats">
+                                <div class="q-stat-item">
+                                    <span class="q-val" th:text="${'EMP-' + employee.id}">ID</span>
+                                    <span class="q-lbl">Employee ID</span>
+                                </div>
+                                <div class="q-stat-item" style="border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border);">
+                                    <span class="q-val" th:text="${#temporals.format(employee.joiningDate, 'yyyy')}">Year</span>
+                                    <span class="q-lbl">Joined</span>
+                                </div>
+                                <div class="q-stat-item">
+                                    <span class="q-val" th:text="${employee.department}">Dept</span>
+                                    <span class="q-lbl">Dept</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Details Card -->
+                    <div class="glass-card" style="padding: 25px;">
+                        <h5 class="details-title mb-4" style="font-size: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">
+                            <i class="far fa-address-book mr-2"></i> Contact Info
+                        </h5>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li class="mb-4 d-flex align-items-center">
+                                <div style="width: 40px; height: 40px; background: rgba(99,102,241,0.1); color: #6366f1; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 1.1rem;">
+                                    <i class="far fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <small style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Email Address</small>
+                                    <span style="color: var(--text-main); font-weight: 600;" th:text="${employee.email}">mail@example.com</span>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-center">
+                                <div style="width: 40px; height: 40px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 1.1rem;">
+                                    <i class="fas fa-phone-alt"></i>
+                                </div>
+                                <div>
+                                    <small style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Phone Number</small>
+                                    <span style="color: var(--text-main); font-weight: 600;" th:text="${employee.phoneNumber}">+880...</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right Column: Full Details -->
+                <div class="col-lg-8 col-md-7">
+                    <div class="glass-card">
+                        <div class="details-header">
+                            <h3 class="details-title"><i class="far fa-id-card mr-2 text-primary"></i>Employment Details</h3>
+                            <a th:href="@{/employee-portal/settings}" class="edit-btn">
+                                <i class="fas fa-user-cog mr-1"></i> Edit Settings
+                            </a>
+                        </div>
+                        <div class="details-body">
+                            <div class="info-grid">
+
+                                <div class="info-group">
+                                    <label>Full Name</label>
+                                    <div th:text="${employee.name}">User Full Name</div>
+                                </div>
+
+                                <div class="info-group">
+                                    <label>Designation</label>
+                                    <div th:text="${employee.designation}">Software Engineer</div>
+                                </div>
+
+                                <div class="info-group">
+                                    <label>Department</label>
+                                    <div th:text="${employee.department}">Development</div>
+                                </div>
+
+                                <div class="info-group">
+                                    <label>Date of Joining</label>
+                                    <div th:text="${#temporals.format(employee.joiningDate, 'dd MMMM yyyy')}">01 Jan 2023</div>
+                                </div>
+
+                                <div class="info-group">
+                                    <label>Address</label>
+                                    <div th:text="${employee.address}">House #12, Road #5, Dhanmondi R/A, Dhaka-1209, Bangladesh.</div>
+                                </div>
+
+                                <div class="info-group">
+                                    <label>Current Basic Salary</label>
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <span class="text-success salary-blur" style="font-weight: 800;" th:text="${'৳ ' + #numbers.formatDecimal(employee.basicSalary, 0, 'COMMA', 0, 'POINT')}">50,000</span>
+                                        <i class="fas fa-eye-slash text-muted" style="font-size: 0.9rem;" title="Hover to reveal"></i>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+<!--                    -->
+<!--                    &lt;!&ndash; About / Bio Card &ndash;&gt;-->
+<!--                    <div class="glass-card">-->
+<!--                        <div class="details-header">-->
+<!--                            <h3 class="details-title"><i class="fas fa-info-circle mr-2 text-info"></i>Employee Bio</h3>-->
+<!--                        </div>-->
+<!--                        <div class="details-body">-->
+<!--                            <p style="color: var(&#45;&#45;text-muted); line-height: 1.7; margin: 0; font-size: 0.95rem;">-->
+<!--                                This employee is a key member of the <strong th:text="${employee.department}">IT</strong> department.-->
+<!--                                Serving as a <strong th:text="${employee.designation}">Role</strong> since <span th:text="${#temporals.format(employee.joiningDate, 'yyyy')}">2023</span>.-->
+<!--                                Dedicated to maintaining high standards of work and contributing to the company's success.-->
+<!--                            </p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    -->
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

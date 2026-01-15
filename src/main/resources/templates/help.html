@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Help Center | Payroll System</title>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.1);
+            --radius: 12px;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+
+            --primary-soft: rgba(79, 70, 229, 0.2);
+        }
+
+        /* ============================================
+           2. HERO SECTION
+           ============================================ */
+        .help-hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+
+        .help-title {
+            font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;
+        }
+        .help-subtitle {
+            font-size: 1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 30px;
+        }
+
+        /* Search Input */
+        .search-wrapper {
+            position: relative; max-width: 600px; margin: 0 auto;
+        }
+        .search-input {
+            width: 100%; height: 55px; padding: 10px 20px 10px 55px;
+            border-radius: 50px;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 1rem; transition: all 0.3s;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-soft);
+            background: var(--bg-card);
+            outline: none;
+        }
+        .search-icon {
+            position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+            color: var(--text-secondary); font-size: 1.2rem;
+        }
+
+        /* ============================================
+           3. TOPIC CARDS
+           ============================================ */
+        .topic-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            display: block;
+            text-decoration: none !important;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        .icon-box {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: var(--primary-soft); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; margin: 0 auto 20px;
+            transition: 0.3s;
+        }
+        .topic-card:hover .icon-box { background: var(--primary); color: #fff; }
+
+        .topic-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .topic-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; }
+
+        /* ============================================
+           4. ACCORDION (FAQ)
+           ============================================ */
+        .faq-section-title { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; }
+
+        .accordion-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px; margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            width: 100%; padding: 20px;
+            background: transparent; border: none;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 1rem; font-weight: 600; color: var(--text-primary);
+            cursor: pointer; text-align: left;
+            transition: background 0.2s;
+        }
+        .accordion-header:hover { background: var(--input-bg); }
+        .accordion-header.active i { transform: rotate(180deg); color: var(--primary); }
+
+        .accordion-content {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
+            padding: 0 20px; color: var(--text-secondary); line-height: 1.6;
+            font-size: 0.95rem; border-top: 1px solid transparent;
+        }
+        .accordion-content.open {
+            padding-bottom: 20px;
+            border-top-color: var(--border-color);
+        }
+
+        /* ============================================
+           5. CONTACT CARD
+           ============================================ */
+        .contact-card {
+            background: var(--primary); color: #fff;
+            border-radius: var(--radius); padding: 40px 30px;
+            text-align: center; box-shadow: var(--shadow-card);
+        }
+        .contact-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; }
+        .contact-desc { opacity: 0.9; margin-bottom: 25px; font-size: 0.95rem; }
+
+        .btn-white {
+            background: #fff; color: var(--primary); border: none;
+            padding: 12px 30px; border-radius: 30px; font-weight: 700;
+            display: inline-block; transition: 0.2s; text-decoration: none;
+        }
+        .btn-white:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        .support-link { color: #fff; text-decoration: underline; opacity: 0.9; font-size: 0.9rem; margin-top: 15px; display: block; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .help-hero { padding: 40px 20px; }
+            .help-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <div class="help-hero">
+        <div class="container-fluid">
+            <h1 class="help-title">How can we help you?</h1>
+            <p class="help-subtitle">Browse topics, find answers, or contact our support team.</p>
+
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search for answers (e.g. Payslip, Login)...">
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <a th:href="@{/employees}" class="topic-card">
+                        <div class="icon-box"><i class="fas fa-users"></i></div>
+                        <h3 class="topic-title">Employee Management</h3>
+                        <p class="topic-desc">Learn how to add staff, update profiles, and manage designations.</p>
+                    </a>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <a th:href="@{/payroll/sheet}" class="topic-card">
+                        <div class="icon-box"><i class="fas fa-wallet"></i></div>
+                        <h3 class="topic-title">Payroll & Finance</h3>
+                        <p class="topic-desc">Guide to generating salary sheets, printing payslips, and deductions.</p>
+                    </a>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <a th:href="@{/attendance/list}" class="topic-card">
+                        <div class="icon-box"><i class="fas fa-clock"></i></div>
+                        <h3 class="topic-title">Time & Attendance</h3>
+                        <p class="topic-desc">Understand how to track daily logs, overtime, and leave policies.</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col-lg-8 mb-4">
+                    <h2 class="faq-section-title">Frequently Asked Questions</h2>
+
+                    <div class="accordion-wrapper">
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                <span>How is the salary calculated?</span>
+                                <i class="fas fa-chevron-down transition-icon"></i>
+                            </button>
+
+                            <div class="accordion-content">
+
+                                <p class="mt-2 mb-2">The net pay is calculated based on <strong>Pro-rata</strong> (actual days worked) with <strong>Dynamic Overtime (1.5x)</strong> and <strong>5% Tax</strong>:</p>
+
+                                <code style="background: var(--input-bg); padding: 8px; border-radius: 4px; color: var(--primary); display: block; margin-bottom: 15px; font-size: 0.85rem;">
+                                    Net Pay = (Earned Basic + Overtime) - (Tax + Penalty)
+                                </code>
+
+                                <p class="mt-2 mb-2" style="border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                                    <strong>Calculation Example:</strong>
+                                </p>
+
+                                <div style="font-size: 0.9em; margin-bottom: 15px;">
+                                    <p class="mb-2 text-muted">
+                                        <strong>Employee:</strong> Mr. Karim <br>
+                                        <strong>Stats:</strong> Basic 26,000 | Work Days: 26 | Present: 25 | OT: 4hrs
+                                    </p>
+
+                                    <ul style="padding-left: 20px; margin-top: 5px; list-style-type: circle;">
+                                        <li class="mb-1">
+                                            <strong>Daily Rate:</strong> 26,000 / 26 = 1,000.00
+                                        </li>
+
+                                        <li class="mb-1">
+                                            <strong>Earned Basic:</strong> 1,000 &times; 25 days = <span style="color: var(--success);">25,000.00</span>
+                                            <br><small class="text-muted">(Salary reduced due to 1 day absence)</small>
+                                        </li>
+
+                                        <li class="mb-1">
+                                            <strong>Overtime (1.5x Rate):</strong>
+                                            <br><small class="text-muted">Hourly: 125.00 | OT Rate: 187.50</small>
+                                            <br>4 hrs &times; 187.50 = <span style="color: var(--success);">+750.00</span>
+                                        </li>
+
+                                        <li class="mb-1">
+                                            <strong>Deductions:</strong> Tax (5% of 25k = 1,250) + Penalty (0) = <span style="color: var(--danger);">-1,250.00</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <p class="mb-1" style="font-size: 0.9em;"><strong>Final Pay Calculation:</strong></p>
+                                <code style="background: var(--input-bg); padding: 12px; border-radius: 6px; color: var(--text-primary); display: block; line-height: 1.6;">
+                                    (25,000.00 + 750.00) - 1,250.00 <br>
+                                    = <strong style="font-size: 1.1em; color: var(--primary);">24,500.00 BDT</strong>
+                                </code>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                <span>Can I regenerate a payslip after it's created?</span>
+                                <i class="fas fa-chevron-down transition-icon"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <p class="mt-2 mb-2">Yes. If you find an error, you can delete the specific payroll record for that month and run the "Generate Payroll" process again for the corrected data.</p>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                <span>How do I reset my password?</span>
+                                <i class="fas fa-chevron-down transition-icon"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <p class="mt-2 mb-2">Navigate to <strong>My Profile > Settings</strong>. From there, you can enter your current password and set a new one securely.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="contact-card">
+                        <h3 class="contact-title">Still need help?</h3>
+                        <p class="contact-desc">Our support team is available 24/7 to assist you with any technical issues.</p>
+
+                        <a href="mailto:support@axiomdevs.com" class="btn-white">
+                            <i class="fas fa-paper-plane mr-2"></i> Contact Support
+                        </a>
+
+                        <a href="#" th:text="${supportPhone}" class="support-link"><i class="fas fa-phone-alt mr-1"></i> +880 1234 567890</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const headers = document.querySelectorAll('.accordion-header');
+
+            headers.forEach(header => {
+                header.addEventListener('click', function() {
+                    // Toggle active class on header
+                    this.classList.toggle('active');
+
+                    // Toggle content visibility
+                    const content = this.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        content.classList.remove('open');
+                    } else {
+                        // Close others (Optional - remove this block if you want multiple open)
+                        document.querySelectorAll('.accordion-content').forEach(c => {
+                            c.style.maxHeight = null;
+                            c.classList.remove('open');
+                        });
+                        document.querySelectorAll('.accordion-header').forEach(h => {
+                            h.classList.remove('active');
+                            if(h === this) h.classList.add('active');
+                        });
+                        // End Close others
+
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        content.classList.add('open');
+                    }
+                });
+            });
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

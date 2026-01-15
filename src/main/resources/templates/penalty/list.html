@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Charge Sheet List | Payroll System</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --table-hover: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --danger: #ef4444;
+            --radius: 10px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+            /* Status Colors */
+            --pending-bg: #fff7ed; --pending-text: #c2410c; /* Orange */
+            --deducted-bg: #f0fdf4; --deducted-text: #15803d; /* Green */
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --table-hover: #334155;
+
+            /* Status Colors Dark */
+            --pending-bg: rgba(194, 65, 12, 0.2); --pending-text: #fdba74;
+            --deducted-bg: rgba(21, 128, 61, 0.3); --deducted-text: #4ade80;
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT & CARD
+           ============================================ */
+        .content-header { padding: 20px 0; }
+
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0;
+        }
+
+        /* ============================================
+           3. MODERN TABLE STYLES
+           ============================================ */
+        table.dataTable {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            margin-top: 10px !important;
+            color: var(--text-primary);
+        }
+
+        /* Header */
+        .table thead th {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 15px;
+        }
+
+        /* Body */
+        .table tbody tr {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--table-hover) !important;
+            cursor: pointer;
+        }
+
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-top: none;
+        }
+
+        /* User Info in Table */
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--border-color); margin-right: 12px;
+        }
+        .user-info h6 { font-weight: 700; margin: 0; color: var(--text-primary); font-size: 0.9rem; }
+        .user-info span { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;
+        }
+        .status-pending { background: var(--pending-bg); color: var(--pending-text); }
+        .status-deducted { background: var(--deducted-bg); color: var(--deducted-text); }
+
+        /* Soft Buttons */
+        .btn-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.2s; border: none; font-size: 0.85rem;
+        }
+
+        .btn-soft-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-soft-danger:hover { background: #ef4444; color: #fff; }
+
+        /* DataTables Controls */
+        .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary) !important; font-size: 0.85rem; margin-top: 15px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--bg-body); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-primary); padding: 5px 10px;
+        }
+
+        .page-item .page-link {
+            background: var(--bg-card); border-color: var(--border-color); color: var(--text-secondary);
+        }
+        .page-item.active .page-link {
+            background: var(--primary); border-color: var(--primary); color: #fff;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .content-header .row { flex-direction: column; text-align: center; gap: 15px; }
+            .content-header .text-right { text-align: center !important; }
+            .btn-new-penalty { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="page-title"><i class="fas fa-file-invoice-dollar mr-2 text-danger"></i>Penalty Log</h1>
+                </div>
+                <div class="col-md-6 text-right">
+                    <a th:href="@{/employees}" class="btn btn-primary rounded-pill px-4 shadow-sm btn-new-penalty"
+                       style="background: var(--primary); border: none; font-weight: 600;">
+                        <i class="fas fa-plus mr-2"></i> Issue New Penalty
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="content-card">
+                <div class="table-responsive">
+                    <table id="penaltyTable" class="table w-100">
+                        <thead>
+                        <tr>
+                            <th>Issue Date</th>
+                            <th>Employee Details</th>
+                            <th>Reason</th>
+                            <th>Amount</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="charge : ${charges}">
+                            <td class="align-middle" style="color: var(--text-secondary); font-weight: 500;"
+                                th:text="${charge.issueDate}">2023-01-01</td>
+
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <img class="user-avatar"
+                                         th:src="@{${charge.employee.getPhotosImagePath}}"
+                                         alt="User Image">
+                                    <div class="user-info">
+                                        <h6 th:text="${charge.employee.name}">Name</h6>
+                                        <span th:text="${charge.employee.designation}">Designation</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="align-middle">
+                                <span style="color: var(--text-secondary);" th:text="${charge.reason}">Reason</span>
+                            </td>
+
+                            <td class="align-middle">
+                                <span style="font-weight: 700; color: var(--danger);">
+                                    ৳ <span th:text="${charge.penaltyAmount}">500</span>
+                                </span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <span th:if="${charge.status == 'PENDING'}" class="status-pill status-pending">Pending</span>
+                                <span th:if="${charge.status == 'DEDUCTED'}" class="status-pill status-deducted">Deducted</span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <a th:if="${charge.status == 'PENDING'}"
+                                   th:href="@{/penalty/delete/{id}(id=${charge.id})}"
+                                   class="btn-icon btn-soft-danger"
+                                   onclick="return confirm('Are you sure you want to revoke this fine?');"
+                                   title="Revoke Fine">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+
+                                <span th:if="${charge.status == 'DEDUCTED'}" style="color: var(--text-secondary); font-size: 0.85rem;">
+                                    <i class="fas fa-lock mr-1"></i> Locked
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#penaltyTable").DataTable({
+                "order": [ [0, "desc"] ],
+                "responsive": true,
+                "autoWidth": false,
+                "lengthChange": false,
+                "pageLength": 10,
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search records...",
+                    "paginate": { "previous": "<", "next": ">" }
+                }
+            });
+
+            // Clean up search bar
+            $('.dataTables_filter input').css('width', '250px');
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$LAYOUT_TITLE | $CONTENT_TITLE">Payroll System</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
+
+    <link rel="stylesheet" href="/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+    <script src="/plugins/chart.js/Chart.min.js"></script>
+
+    <style>
+        /* =========================================
+           1. THEME VARIABLES (DYNAMIC)
+           ========================================= */
+        :root {
+            /* --- Light Mode (Default) --- */
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --text-muted: #64748b;
+
+            /* Glassmorphism Light */
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+
+            /* Sidebar Light */
+            --sidebar-bg: rgba(255, 255, 255, 0.9);
+            --sidebar-active: rgba(79, 70, 229, 0.1);
+            --sidebar-text: #334155;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        /* --- Dark Mode Override --- */
+        body.dark-mode {
+            --bg-color: #0f172a; /* Dark Slate */
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+
+            /* Glassmorphism Dark */
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+            /* Sidebar Dark */
+            --sidebar-bg: rgba(15, 23, 42, 0.95);
+            --sidebar-active: rgba(79, 70, 229, 0.2);
+            --sidebar-text: #e2e8f0;
+        }
+
+        /* =========================================
+           2. GLOBAL STYLES & OVERRIDES
+           ========================================= */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Content Wrapper Transparency */
+        .content-wrapper {
+            background: transparent !important;
+        }
+
+        /* --- GLASS CARD STYLE (Global) --- */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            color: var(--text-color);
+            border-radius: 12px;
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--glass-border);
+            background: transparent;
+        }
+
+        /* --- SIDEBAR OVERRIDES --- */
+        .main-sidebar {
+            background: var(--sidebar-bg) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-right: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .main-sidebar .brand-link {
+            border-bottom: 1px solid var(--glass-border) !important;
+            color: var(--text-color) !important;
+        }
+
+        .nav-sidebar .nav-link {
+            color: var(--sidebar-text) !important;
+        }
+
+        .nav-sidebar .nav-link.active {
+            background-color: var(--sidebar-active) !important;
+            color: var(--primary) !important;
+            border-left: 3px solid var(--primary);
+            box-shadow: none !important;
+        }
+
+        .nav-sidebar .nav-link:hover {
+            background-color: var(--sidebar-active) !important;
+            color: var(--primary) !important;
+        }
+
+        /* --- HEADER OVERRIDES --- */
+        .main-header {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+
+        .main-header .nav-link {
+            color: var(--text-color) !important;
+        }
+
+        /* --- FOOTER --- */
+        .main-footer {
+            background: transparent !important;
+            border-top: 1px solid var(--glass-border) !important;
+            color: var(--text-muted);
+        }
+
+        /* --- DATATABLES FIX FOR DARK MODE --- */
+        body.dark-mode .table { color: var(--text-color); }
+        body.dark-mode .table-hover tbody tr:hover { background-color: rgba(255,255,255,0.05); }
+        body.dark-mode .page-item.disabled .page-link { background-color: var(--glass-bg); border-color: var(--glass-border); }
+        body.dark-mode .page-link { background-color: var(--glass-bg); border-color: var(--glass-border); color: var(--primary); }
+    </style>
+</head>
+
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed">
+
+<script>
+    (function() {
+        const savedTheme = localStorage.getItem('payroll_theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    })();
+</script>
+
+<div class="wrapper">
+
+<!--    <div th:replace="~{fragments/header :: header}"></div>-->
+
+<!--    <div th:replace="~{fragments/sidebar :: sidebar}"></div>-->
+
+    <div class="content-wrapper">
+        <section class="content">
+            <div class="container-fluid">
+                <div layout:fragment="content"></div>
+            </div>
+        </section>
+    </div>
+
+<!--    <div th:replace="~{fragments/footer :: footer}"></div>-->
+
+</div>
+
+<script src="/plugins/jquery/jquery.min.js"></script>
+<script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/dist/js/adminlte.min.js"></script>
+
+<script src="/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+<th:block layout:fragment="script"></th:block>
+
+<script>
+    $(document).ready(function() {
+        // 1. Set the correct icon on load based on the body class
+        // (Body class is already set by the top script)
+        if ($('body').hasClass('dark-mode')) {
+            $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+        } else {
+            $('#themeToggle i').removeClass('fa-sun').addClass('fa-moon');
+        }
+
+        // 2. Toggle Button Click Handler
+        $(document).on('click', '#themeToggle', function(e) {
+            e.preventDefault();
+            const body = $('body');
+            body.toggleClass('dark-mode');
+
+            // Save preference and update icon
+            if (body.hasClass('dark-mode')) {
+                localStorage.setItem('payroll_theme', 'dark');
+                $(this).find('i').removeClass('fa-moon').addClass('fa-sun');
+            } else {
+                localStorage.setItem('payroll_theme', 'light');
+                $(this).find('i').removeClass('fa-sun').addClass('fa-moon');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

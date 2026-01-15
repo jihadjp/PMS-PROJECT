@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dashboard | Payroll System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.1);
+            --success: #10b981;
+            --success-soft: rgba(16, 185, 129, 0.1);
+            --warning: #f59e0b;
+            --warning-soft: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --danger-soft: rgba(239, 68, 68, 0.1);
+
+            --radius: 10px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+
+            --primary-soft: rgba(79, 70, 229, 0.2);
+            --success-soft: rgba(16, 185, 129, 0.2);
+            --warning-soft: rgba(245, 158, 11, 0.2);
+            --danger-soft: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 25px 0; }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0;
+        }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px; }
+
+        /* ============================================
+           3. STAT CARDS
+           ============================================ */
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 25px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+            position: relative; overflow: hidden;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        .stat-content h3 { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin: 0; line-height: 1.2; }
+        .stat-content p { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin: 0; letter-spacing: 0.5px; }
+
+        .icon-box {
+            width: 60px; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; flex-shrink: 0;
+        }
+
+        /* Footer Link Overlay */
+        .stat-link {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.02);
+            border-top: 1px solid var(--border-color);
+            text-align: center; padding: 5px; font-size: 0.8rem;
+            color: var(--text-secondary); text-decoration: none;
+            opacity: 0; transition: 0.3s;
+        }
+        .stat-card:hover .stat-link { opacity: 1; }
+
+        /* ============================================
+           4. CHARTS & ACTIONS
+           ============================================ */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 20px;
+            margin-bottom: 30px;
+            height: 100%;
+        }
+
+        .card-header-custom {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);
+        }
+        .card-title-custom { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        /* Quick Action Buttons */
+        .quick-actions-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+        }
+
+        .quick-btn {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            text-decoration: none !important;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-card);
+            height: 120px;
+        }
+        .quick-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .quick-icon { font-size: 2rem; margin-bottom: 10px; color: var(--primary); }
+        .quick-text { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+        .quick-desc { font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* Mobile Tweaks */
+        @media (max-width: 768px) {
+            .quick-actions-grid { grid-template-columns: 1fr; }
+            .quick-btn { flex-direction: row; height: auto; justify-content: flex-start; text-align: left; padding: 15px; }
+            .quick-icon { margin-bottom: 0; margin-right: 15px; font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-sm-6">
+                    <h1 class="page-title">Dashboard Overview</h1>
+                    <p class="page-subtitle">Welcome back to the admin panel</p>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right" style="background: transparent; padding: 0;">
+                        <li class="breadcrumb-item"><a href="#" style="color: var(--text-secondary);">Home</a></li>
+                        <li class="breadcrumb-item active" style="color: var(--primary); font-weight: 600;">Dashboard</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-lg-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <h3 th:text="${totalEmployees}">0</h3>
+                            <p>Total Staff</p>
+                        </div>
+                        <div class="icon-box" style="background: var(--primary-soft); color: var(--primary);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <a th:href="@{/employees}" class="stat-link">View Details <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <h3>$<span th:text="${totalPayroll != null ? #numbers.formatDecimal(totalPayroll, 0, 'COMMA', 0, 'POINT') : 0}">0</span></h3>
+                            <p>Payroll Cost</p>
+                        </div>
+                        <div class="icon-box" style="background: var(--success-soft); color: var(--success);">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <a href="#" class="stat-link">View History <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <h3>44</h3>
+                            <p>New Joiners</p>
+                        </div>
+                        <div class="icon-box" style="background: var(--warning-soft); color: var(--warning);">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <a href="#" class="stat-link">View Details <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <h3>65</h3>
+                            <p>Pending Tasks</p>
+                        </div>
+                        <div class="icon-box" style="background: var(--danger-soft); color: var(--danger);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <a href="#" class="stat-link">View Details <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="content-card">
+                        <div class="card-header-custom">
+                            <h3 class="card-title-custom">
+                                <i class="fas fa-chart-line mr-2 text-primary"></i> Payroll Distribution
+                            </h3>
+                            <select class="form-control form-control-sm" style="width: 100px; background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                <option>2023</option>
+                                <option>2022</option>
+                            </select>
+                        </div>
+                        <div style="position: relative; height: 320px; width: 100%;">
+                            <canvas id="payrollChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="content-card" style="background: transparent; border: none; box-shadow: none; padding: 0;">
+                        <h5 style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; margin-bottom: 15px;">Quick Actions</h5>
+
+                        <div class="quick-actions-grid">
+                            <a th:href="@{/employees/add}" class="quick-btn">
+                                <i class="fas fa-user-plus quick-icon"></i>
+                                <span class="quick-text">Add Employee</span>
+                                <span class="quick-desc">Create new staff profile</span>
+                            </a>
+
+                            <a th:href="@{/employees}" class="quick-btn">
+                                <i class="fas fa-users-cog quick-icon" style="color: var(--success);"></i>
+                                <span class="quick-text">Manage Staff</span>
+                                <span class="quick-desc">View and edit records</span>
+                            </a>
+
+                            <a href="#" class="quick-btn">
+                                <i class="fas fa-file-invoice quick-icon" style="color: var(--warning);"></i>
+                                <span class="quick-text">Payroll</span>
+                                <span class="quick-desc">Generate monthly slips</span>
+                            </a>
+
+                            <a href="#" class="quick-btn">
+                                <i class="fas fa-cog quick-icon" style="color: var(--text-secondary);"></i>
+                                <span class="quick-text">Settings</span>
+                                <span class="quick-desc">System configuration</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script>
+        $(function () {
+            var ctx = document.getElementById('payrollChart').getContext('2d');
+
+            // Theme Colors check
+            var isDark = document.body.classList.contains('dark-mode');
+            var textColor = isDark ? '#94a3b8' : '#64748b';
+            var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Payroll Expense ($)',
+                        data: [12000, 19000, 15000, 17000, 14000, 22000],
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 5,
+                        hoverBackgroundColor: '#4338ca'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, borderDash: [2, 2] },
+                            ticks: { color: textColor }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

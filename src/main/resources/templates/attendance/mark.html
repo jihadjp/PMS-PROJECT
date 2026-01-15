@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Mark Attendance | Payroll System</title>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --table-hover: #f8fafc;
+            --input-bg: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --radius: 10px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --table-hover: #334155;
+            --input-bg: #0f172a;
+        }
+
+        /* ============================================
+           2. LAYOUT & CARDS
+           ============================================ */
+        .content-header { padding: 20px 0; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 20px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        /* ============================================
+           3. DATE PICKER SECTION
+           ============================================ */
+        .date-selector-container {
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            padding: 20px;
+        }
+
+        .form-control-custom {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            height: 45px;
+            padding: 0 15px;
+        }
+        .form-control-custom:focus {
+            background-color: var(--bg-card);
+            border-color: var(--primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* ============================================
+           4. TABLE STYLES
+           ============================================ */
+        .table { margin-bottom: 0; color: var(--text-primary); }
+        .table thead th {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px;
+        }
+        .table td { vertical-align: middle; padding: 15px; border-bottom: 1px solid var(--border-color); }
+
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--border-color); margin-right: 12px;
+        }
+        .user-info h6 { font-weight: 700; margin: 0; font-size: 0.95rem; }
+        .user-info span { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* ============================================
+           5. FORM ELEMENTS (Toggle & Input)
+           ============================================ */
+        /* Custom Toggle Switch */
+        .switch {
+            position: relative; display: inline-block; width: 50px; height: 26px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Overtime Input */
+        .input-overtime {
+            width: 80px; text-align: center; font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 6px;
+        }
+        .btn-primary-custom:hover { background: #4338ca; color: white; }
+
+        .btn-save {
+            background: rgba(79, 70, 229, 0.1); color: var(--primary); border: none; padding: 8px 15px; border-radius: 6px; font-weight: 600; transition: 0.2s;
+        }
+        .btn-save:hover { background: var(--primary); color: white; }
+
+        .btn-update {
+            background: rgba(245, 158, 11, 0.1); color: var(--warning); border: none; padding: 8px 15px; border-radius: 6px; font-weight: 600; transition: 0.2s;
+        }
+        .btn-update:hover { background: var(--warning); color: white; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .date-selector-container { flex-direction: column; width: 100%; }
+            .form-control-custom { width: 100%; }
+            .content-header .row { text-align: center; gap: 10px; }
+            .content-header .text-right { text-align: center !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-sm-6">
+                    <h1 class="page-title"><i class="fas fa-calendar-check mr-2 text-primary"></i>Daily Attendance</h1>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a th:href="@{/attendance/list}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-history mr-1"></i> View History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="content-card">
+                <form th:action="@{/attendance/mark}" method="get">
+                    <div class="date-selector-container">
+                        <label class="font-weight-bold" style="color: var(--text-secondary);">SELECT DATE:</label>
+                        <input type="date" name="date" class="form-control form-control-custom"
+                               style="max-width: 250px;"
+                               th:value="${selectedDate}" onchange="this.form.submit()">
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="fas fa-sync-alt mr-1"></i> Load Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="content-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+                        Marking for: <span style="color: var(--primary);" th:text="${selectedDate}"></span>
+                    </h3>
+                    <span class="badge" style="background: var(--bg-body); color: var(--text-secondary);">
+                        <i class="fas fa-users mr-1"></i> <span th:text="${#lists.size(employees)}">0</span> Employees
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th>Employee Details</th>
+                            <th>Designation</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Overtime (Hrs)</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="emp : ${employees}">
+                            <form th:action="@{/attendance/save}" method="post">
+                                <input type="hidden" name="employeeId" th:value="${emp.id}"/>
+                                <input type="hidden" name="date" th:value="${selectedDate}"/>
+
+                                <td class="align-middle text-muted font-weight-bold" th:text="'#'+${emp.id}"></td>
+
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <img class="user-avatar" th:src="@{${emp.getPhotosImagePath}}">
+                                        <div class="user-info">
+                                            <h6 th:text="${emp.name}" style="color: var(--text-primary);">Name</h6>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="align-middle">
+                                    <span class="badge" style="background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                          th:text="${emp.designation}">Role</span>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <label class="switch">
+                                        <input type="checkbox" name="isPresent" value="true"
+                                               th:checked="${attendanceMap.containsKey(emp.id) && attendanceMap.get(emp.id).present}">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <input type="hidden" name="_isPresent" value="on"/>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <input type="number" name="overtimeHours" class="form-control form-control-custom input-overtime mx-auto"
+                                           min="0" step="0.5" placeholder="0"
+                                           th:value="${attendanceMap.containsKey(emp.id) ? attendanceMap.get(emp.id).overtimeHours : 0}">
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <button type="submit"
+                                            th:class="${attendanceMap.containsKey(emp.id) ? 'btn-update' : 'btn-save'}">
+                                        <i class="fas" th:classappend="${attendanceMap.containsKey(emp.id) ? 'fa-check-circle' : 'fa-save'}"></i>
+                                        <span th:text="${attendanceMap.containsKey(emp.id) ? 'Update' : 'Save'}"></span>
+                                    </button>
+                                </td>
+                            </form>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

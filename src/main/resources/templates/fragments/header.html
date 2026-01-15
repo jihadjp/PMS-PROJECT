@@ -1,0 +1,246 @@
+<div th:fragment="header" xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <style>
+        /* =========================================
+           1. THEME VARIABLES (Same as before)
+           ========================================= */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --hover-bg: rgba(0, 0, 0, 0.05);
+            --dropdown-bg: rgba(255, 255, 255, 0.9);
+            --highlight: #3b82f6;
+        }
+
+        /* DARK MODE VARIABLES */
+        body.dark-mode {
+            --glass-bg: rgba(15, 23, 42, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --hover-bg: rgba(255, 255, 255, 0.1);
+            --dropdown-bg: #1e293b;
+            --highlight: #60a5fa;
+        }
+
+        /* GLASS & NAVBAR STYLES */
+        .glass-effect {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border) !important;
+            box-shadow: var(--glass-shadow);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .main-header { border: none; }
+        .navbar-nav .nav-link {
+            color: var(--text-muted) !important;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .navbar-nav .nav-link:hover, .navbar-nav .nav-link.active {
+            color: var(--text-main) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Search Bar Responsive Fix */
+        .search-container {
+            width: 250px;
+            transition: width 0.3s ease;
+        }
+        /* Mobile specific style for search */
+        @media (max-width: 576px) {
+            .search-container {
+                width: 160px; /* Smaller width on mobile */
+            }
+        }
+
+        .form-control-navbar {
+            background-color: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            color: var(--text-main) !important;
+            backdrop-filter: blur(5px);
+        }
+        .form-control-navbar::placeholder { color: var(--text-muted); opacity: 0.7; }
+        .form-control-navbar:focus {
+            background-color: var(--hover-bg) !important;
+            border-color: var(--highlight) !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .btn-navbar {
+            background-color: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            border-left: none !important;
+            color: var(--text-muted) !important;
+        }
+        .btn-navbar:hover {
+            background-color: var(--hover-bg) !important;
+            color: var(--highlight) !important;
+        }
+
+        /* Dropdown Styles */
+        .dropdown-menu {
+            background-color: var(--dropdown-bg) !important;
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        .dropdown-item { color: var(--text-muted) !important; border-radius: 8px; }
+        .dropdown-item:hover { background-color: var(--hover-bg) !important; color: var(--text-main) !important; padding-left: 28px; }
+        .dropdown-divider { border-color: var(--input-border); }
+        .badge-pulse {
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+    </style>
+
+    <nav class="main-header navbar navbar-expand glass-effect">
+
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                    <i class="fas fa-bars"></i>
+                </a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a th:href="${#authorization.expression('hasRole(''EMPLOYEE'')') ? '/employee-portal/dashboard' : '/'}"
+                   class="nav-link">Home</a>
+            </li>
+        </ul>
+
+        <ul class="navbar-nav ml-auto align-items-center">
+
+            <li class="nav-item mr-3">
+                <a class="nav-link" href="#" id="headerThemeToggle" role="button" title="Switch Theme">
+                    <i class="fas fa-moon" id="headerThemeIcon"></i>
+                </a>
+            </li>
+
+            <li class="nav-item d-flex mr-3" sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')">
+                <form class="form-inline" th:action="@{/employees}" method="get">
+                    <div class="input-group input-group-sm search-container">
+                        <input class="form-control form-control-navbar rounded-left"
+                               type="search" name="keyword" placeholder="Search..." aria-label="Search">
+                        <div class="input-group-append">
+                            <button class="btn btn-navbar rounded-right" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </li>
+
+            <li class="nav-item dropdown mr-2"
+                sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')"
+                th:with="totalAlerts=${(globalDisputeCount ?: 0) + (globalPendingCount ?: 0)}">
+
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-bell" style="font-size: 1.2rem;"></i>
+
+                    <span class="badge badge-danger navbar-badge badge-pulse"
+                          th:if="${totalAlerts > 0}"
+                          th:text="${totalAlerts}">0</span>
+                </a>
+
+                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <span class="dropdown-item dropdown-header font-weight-bold">
+                        <span th:text="${totalAlerts}">0</span> Notifications
+                    </span>
+
+                    <div class="dropdown-divider"></div>
+
+                    <a th:if="${globalDisputeCount > 0}" th:href="@{/admin/disputes}" class="dropdown-item">
+                        <i class="fas fa-gavel mr-2 text-danger"></i>
+                        <span th:text="${globalDisputeCount}">0</span> New Disputes
+                        <span class="float-right text-muted text-sm">Action Req.</span>
+                    </a>
+
+                    <div th:if="${globalDisputeCount > 0}" class="dropdown-divider"></div>
+
+                    <a th:if="${globalPendingCount > 0}" th:href="@{/penalty/list}" class="dropdown-item">
+                        <i class="fas fa-exclamation-circle mr-2 text-warning"></i>
+                        <span th:text="${globalPendingCount}">0</span> Pending Penalties
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+                    <a th:href="@{/attendance/list}" class="dropdown-item">
+                        <i class="fas fa-clipboard-check mr-2 text-success"></i>
+                        <span th:text="${globalPresentCount}">0</span> Present Today
+                    </a>
+
+                    <div th:if="${totalAlerts == 0}" class="dropdown-item text-center text-muted p-3">
+                        <i class="far fa-check-circle mb-1"></i><br>
+                        <small>No pending actions</small>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+                    <a th:href="@{/admin/dashboard}" class="dropdown-item dropdown-footer text-center">Go to Dashboard</a>
+                </div>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-user-circle" style="font-size: 1.4rem;"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a th:href="${#authorization.expression('hasRole(''EMPLOYEE'')') ? '/employee-portal/profile' : '/admin/profile'}"
+                       class="dropdown-item">
+                        <i class="fas fa-user mr-2 text-info"></i> Profile
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <div sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </li>
+
+        </ul>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('headerThemeToggle');
+            const themeIcon = document.getElementById('headerThemeIcon');
+            const body = document.body;
+            const STORAGE_KEY = 'payroll_theme';
+
+            function updateIcon() {
+                if (body.classList.contains('dark-mode')) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            }
+            updateIcon();
+
+            if(toggleBtn){
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    body.classList.toggle('dark-mode');
+                    updateIcon();
+                    localStorage.setItem(STORAGE_KEY, body.classList.contains('dark-mode') ? 'dark' : 'light');
+                });
+            }
+        });
+    </script>
+</div>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>403 Access Denied | Payroll System</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --danger: #ef4444;
+            --danger-soft: rgba(239, 68, 68, 0.1);
+
+            --radius: 16px;
+            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #0f172a;
+                --bg-card: #1e293b;
+                --text-primary: #f8fafc;
+                --text-secondary: #94a3b8;
+                --border-color: #334155;
+                --danger-soft: rgba(239, 68, 68, 0.2);
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           2. ERROR CARD DESIGN
+           ============================================ */
+        .error-wrapper {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Elements */
+        .error-card::before {
+            content: ''; position: absolute; top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: var(--danger-soft); border-radius: 50%; z-index: 0;
+        }
+        .error-card::after {
+            content: ''; position: absolute; bottom: -30px; left: -30px;
+            width: 100px; height: 100px;
+            background: var(--danger-soft); border-radius: 50%; z-index: 0;
+        }
+
+        .error-content { position: relative; z-index: 1; }
+
+        /* Icon Animation */
+        .icon-box {
+            font-size: 3.5rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Text Styling */
+        .error-code {
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            letter-spacing: -2px;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .error-desc {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+
+        /* Button */
+        .btn-home {
+            background: var(--text-primary);
+            color: var(--bg-card);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-home:hover {
+            background: var(--primary);
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .footer-text {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="error-wrapper">
+    <div class="error-card">
+        <div class="error-content">
+
+            <div class="icon-box">
+                <i class="fas fa-user-lock"></i>
+            </div>
+
+            <div class="error-code">403</div>
+
+            <h2 class="error-title">Access Denied</h2>
+
+            <p class="error-desc">
+                Stop! You do not have permission to view this page. <br>
+                Please contact your administrator if you think this is a mistake.
+            </p>
+
+            <a th:href="@{/employee-portal/dashboard}" class="btn-home">
+                <i class="fas fa-arrow-left" style="margin-right: 10px;"></i> Return to Dashboard
+            </a>
+
+            <div class="footer-text">
+                &copy; 2025 Axiom Devs. All rights reserved.
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

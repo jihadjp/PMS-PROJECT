@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Settings | Payroll System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. GLASSMORPHISM THEME VARIABLES (MATCHING PROFILE)
+           ========================================= */
+        :root {
+            /* Light Mode Variables */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+
+            /* Form Colors */
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --input-border: rgba(203, 213, 225, 0.6);
+            --input-focus-ring: rgba(99, 102, 241, 0.25);
+        }
+
+        /* Dark Mode Variables */
+        body.dark-mode {
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+
+            --input-bg: rgba(15, 23, 42, 0.3);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* =========================================
+           2. GLOBAL STYLES & BACKGROUND
+           ========================================= */
+        body {
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background Shapes */
+        .ambient-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .shape-1 {
+            top: 15%; left: 15%; width: 400px; height: 400px;
+            background: #818cf8;
+        }
+        .shape-2 {
+            bottom: 10%; right: 15%; width: 350px; height: 350px;
+            background: #34d399;
+        }
+        body.dark-mode .shape-1 { background: #4f46e5; opacity: 0.3; }
+        body.dark-mode .shape-2 { background: #059669; opacity: 0.2; }
+
+        .settings-container {
+            position: relative;
+            z-index: 1;
+            padding: 40px 20px;
+            min-height: 85vh; /* Center vertically visually */
+            display: flex;
+            align-items: center;
+        }
+
+        /* =========================================
+           3. GLASS CARD
+           ========================================= */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header-glass {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05);
+        }
+        .header-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .card-body-glass { padding: 30px; }
+
+        /* =========================================
+           4. FORM STYLING
+           ========================================= */
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            background: var(--input-bg);
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px var(--input-focus-ring);
+            color: var(--text-main);
+        }
+
+        /* Button Styling */
+        .btn-glass-primary {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-glass-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+
+        /* Alert Styling */
+        .alert-glass {
+            border-radius: 12px;
+            border: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            color: white;
+        }
+        .alert-success { background: rgba(16, 185, 129, 0.85); }
+        .alert-danger { background: rgba(239, 68, 68, 0.85); }
+
+        .close { color: white; opacity: 0.8; text-shadow: none; }
+        .close:hover { opacity: 1; color: white; }
+
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <!-- Ambient Shapes -->
+    <div class="ambient-shape shape-1"></div>
+    <div class="ambient-shape shape-2"></div>
+
+    <div class="settings-container">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7">
+
+                    <!-- Title Area -->
+                    <div class="text-center mb-4">
+                        <h2 style="font-weight: 800; color: var(--text-main); letter-spacing: -1px;">Account Security</h2>
+                        <p style="color: var(--text-muted);">Manage your password and security preferences</p>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div th:if="${success}" class="alert alert-success alert-glass alert-dismissible fade show">
+                        <i class="fas fa-check-circle mr-2"></i> <span th:text="${success}"></span>
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    </div>
+                    <div th:if="${error}" class="alert alert-danger alert-glass alert-dismissible fade show">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> <span th:text="${error}"></span>
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    </div>
+
+                    <!-- Glass Card Form -->
+                    <div class="glass-card">
+                        <div class="card-header-glass">
+                            <h3 class="header-title">
+                                <div style="width: 32px; height: 32px; background: rgba(99,102,241,0.1); color: #6366f1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                                Change Password
+                            </h3>
+                        </div>
+
+                        <form th:action="@{/employee-portal/change-password}" method="post">
+                            <div class="card-body-glass">
+
+                                <div class="form-group">
+                                    <label>Current Password</label>
+                                    <div class="input-group">
+                                        <input type="password" name="currentPassword" class="form-control" placeholder="Enter current password" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>New Password</label>
+                                    <input type="password" name="newPassword" class="form-control" placeholder="Enter new password (min 4 chars)" required minlength="4">
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label>Confirm New Password</label>
+                                    <input type="password" class="form-control" placeholder="Re-enter new password" required>
+                                </div>
+
+                                <button type="submit" class="btn-glass-primary">
+                                    <i class="fas fa-save mr-2"></i> Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Footer Note -->
+                    <div class="text-center mt-4">
+                        <small style="color: var(--text-muted);">
+                            <i class="fas fa-shield-alt mr-1"></i> Your password is encrypted and secure.
+                        </small>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

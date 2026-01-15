@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Payslip | Payroll System</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* ============================================
+           1. THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+        }
+
+        /* ============================================
+           2. INVOICE STYLE
+           ============================================ */
+        .content-header { padding: 20px 0; }
+
+        .invoice-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--primary); /* Brand accent */
+            border-radius: 8px;
+            box-shadow: var(--shadow-card);
+            padding: 40px;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        .invoice-title {
+            font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; color: var(--text-primary);
+        }
+        .invoice-date { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Address Blocks */
+        .invoice-info { margin-top: 30px; margin-bottom: 30px; }
+        .invoice-col strong { display: block; font-size: 1rem; margin-bottom: 5px; color: var(--text-primary); }
+        .invoice-col address { font-style: normal; color: var(--text-secondary); line-height: 1.6; font-size: 0.9rem; }
+        .invoice-label { font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
+
+        /* Paid Stamp */
+        .paid-stamp {
+            display: inline-block;
+            padding: 5px 15px;
+            border: 2px solid var(--success);
+            color: var(--success);
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 4px;
+            letter-spacing: 1px;
+            transform: rotate(-5deg);
+            opacity: 0.8;
+        }
+
+        /* Table Style */
+        .table-invoice th {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding: 12px;
+        }
+        .table-invoice td {
+            padding: 15px 12px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+
+        .amount-font {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .text-earning { color: var(--success); }
+        .text-deduction { color: var(--danger); }
+
+        /* Total Section */
+        .table-total th { text-align: right; padding: 10px; color: var(--text-secondary); }
+        .table-total td { text-align: right; padding: 10px; font-weight: 600; }
+        .net-pay-row {
+            background-color: var(--bg-body);
+            color: var(--primary);
+            font-size: 1.2rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        /* Buttons */
+        .btn-print {
+            background: var(--text-primary); color: var(--bg-card); border: none;
+            padding: 10px 20px; border-radius: 6px; font-weight: 600;
+        }
+        .btn-print:hover { opacity: 0.9; color: var(--bg-card); }
+
+        .btn-pdf {
+            background: var(--primary); color: white; border: none;
+            padding: 10px 20px; border-radius: 6px; font-weight: 600;
+        }
+        .btn-pdf:hover { background: #4338ca; color: white; }
+
+        /* ============================================
+           3. PRINT MEDIA QUERY
+           ============================================ */
+        @media print {
+            .no-print, .main-footer, .navbar, .main-sidebar { display: none !important; }
+            .content-wrapper { margin-left: 0 !important; padding: 0 !important; background: white !important; }
+            .invoice-card { box-shadow: none; border: none; border-top: none; padding: 0; margin: 0; }
+            body { background: white; color: black; }
+            .paid-stamp { border-color: black; color: black; }
+            .text-earning, .text-deduction, .net-pay-row { color: black !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header no-print">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 style="color: var(--text-primary); font-weight: 700;">Payslip Details</h1>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a th:href="@{/payroll/sheet}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left mr-1"></i> Back to History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+
+                    <div class="invoice-card" id="payslip-content">
+
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h4 class="invoice-title">
+                                        <i class="fas fa-coins text-warning mr-2"></i>PAYSLIP
+                                    </h4>
+                                    <span class="invoice-date">Generated: <span th:text="${record.paymentDate}"></span></span>
+                                </div>
+                                <div class="text-right">
+                                    <h5 style="font-weight: 700; color: var(--text-primary);" th:text="${teamName}">Axiom Devs</h5>
+                                    <small style="color: var(--text-secondary);">Dhaka, Bangladesh</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row invoice-info border-bottom pb-4" style="border-color: var(--border-color) !important;">
+                            <div class="col-sm-4 invoice-col">
+                                <span class="invoice-label">Employer</span>
+                                <address>
+                                    <strong>Human Resources Dept.</strong><br>
+                                    Axiom Devs HQ<br>
+                                    Email: hr@axiomdevs.com
+                                </address>
+                            </div>
+                            <div class="col-sm-4 invoice-col">
+                                <span class="invoice-label">Employee</span>
+                                <address>
+                                    <strong th:text="${record.employeeName}">John Doe</strong><br>
+                                    <span th:text="${record.designation}">Designation</span><br>
+                                    ID: <span th:text="${record.employeeId}"></span>
+                                </address>
+                            </div>
+                            <div class="col-sm-4 invoice-col">
+                                <span class="invoice-label">Invoice Details</span><br>
+                                <b>Slip ID:</b> #<span th:text="${record.id}"></span><br>
+                                <b>Period:</b> <span th:text="${record.month}"></span>/<span th:text="${record.year}"></span><br>
+                                <div class="mt-2">
+                                    <span class="paid-stamp">PAID</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 table-responsive">
+                                <table class="table table-invoice">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 60%;">Description</th>
+                                        <th class="text-right">Amount (BDT)</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>Basic Salary</td>
+                                        <td class="text-right amount-font" th:text="${#numbers.formatDecimal(record.basicSalary, 0, 'COMMA', 0, 'POINT')}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Overtime & Bonus</td>
+                                        <td class="text-right amount-font text-earning">
+                                            + <span th:text="${#numbers.formatDecimal(record.bonus, 0, 'COMMA', 0, 'POINT')}"></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tax, Penalties & Deductions</td>
+                                        <td class="text-right amount-font text-deduction">
+                                            - <span th:text="${#numbers.formatDecimal(record.deductions, 0, 'COMMA', 0, 'POINT')}"></span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <p class="lead" style="font-size: 1rem; font-weight: 600;">Note:</p>
+                                <p class="text-muted small text-justify" style="max-width: 80%;">
+                                    This payslip is computer generated and does not require a physical signature.
+                                    Payment has been transferred to the registered bank account.
+                                </p>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="table-responsive">
+                                    <table class="table table-total">
+                                        <tr>
+                                            <th style="width:50%">Subtotal:</th>
+                                            <td class="amount-font" th:text="${#numbers.formatDecimal(record.basicSalary + record.bonus, 0, 'COMMA', 0, 'POINT')}"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Deductions:</th>
+                                            <td class="amount-font text-danger" th:text="${'- ' + #numbers.formatDecimal(record.deductions, 0, 'COMMA', 0, 'POINT')}"></td>
+                                        </tr>
+                                        <tr class="net-pay-row">
+                                            <th>Net Payable:</th>
+                                            <td class="amount-font">
+                                                ৳ <span th:text="${#numbers.formatDecimal(record.netPay, 0, 'COMMA', 0, 'POINT')}"></span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row no-print mt-4">
+                            <div class="col-12">
+                                <button onclick="window.print()" class="btn btn-print">
+                                    <i class="fas fa-print mr-1"></i> Print
+                                </button>
+
+                                <button type="button" onclick="downloadPDF()" class="btn btn-pdf float-right">
+                                    <i class="fas fa-download mr-1"></i> Download PDF
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById('payslip-content');
+
+            const opt = {
+                margin:       [0.5, 0.5], // Top-Bottom, Left-Right margin
+                filename:     'Payslip_Receipt.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 }, // ভালো কোয়ালিটির জন্য স্কেল ২
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</th:block>
+
+</body>
+</html>

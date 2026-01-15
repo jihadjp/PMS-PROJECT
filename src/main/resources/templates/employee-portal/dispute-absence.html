@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dispute Absence | Employee Portal</title>
+    <style>
+        /* CORE VARIABLES (Matching Dashboard) */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --input-bg: rgba(243, 244, 246, 0.9);
+            --primary: #4f46e5;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 16px;
+        }
+
+        /* CARD STYLES */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            padding: 30px;
+            color: var(--text-primary);
+            max-width: 600px;
+            margin: 40px auto; /* Center the card */
+        }
+
+        /* FORM ELEMENTS */
+        .form-control-glass {
+            background: var(--input-bg);
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .form-control-glass:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .btn-submit:hover { transform: translateY(-2px); }
+
+        .status-badge {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container">
+
+        <div class="glass-card">
+            <div class="text-center mb-4">
+                <i class="fas fa-gavel fa-3x text-warning mb-3"></i>
+                <h2 style="font-weight: 800;">Dispute Attendance</h2>
+                <p class="text-secondary">Submit a formal request to correct your attendance status.</p>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.03); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                <p class="mb-1 text-secondary font-weight-bold">Date in Question</p>
+                <h4 class="mb-2" th:text="${#temporals.format(attendance.date, 'EEEE, d MMMM yyyy')}">Date</h4>
+                <div class="status-badge">Current Status: ABSENT (Admin Marked)</div>
+            </div>
+
+            <form th:action="@{/employee-portal/dispute-absence}" method="post">
+                <div class="form-group text-left">
+                    <label style="font-weight: 600; color: var(--text-primary);">Reason / Explanation</label>
+                    <textarea name="reason" rows="5" class="form-control-glass"
+                              placeholder="Explain why you were marked absent incorrectly (e.g. 'I was on a client visit', 'Fingerprint scanner error')..."
+                              required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane mr-2"></i> Submit Dispute
+                </button>
+            </form>
+
+            <div class="text-center mt-3">
+                <a th:href="@{/employee-portal/dashboard}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

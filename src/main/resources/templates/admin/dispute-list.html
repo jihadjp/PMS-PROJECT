@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Manage Disputes | Admin</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <h1><i class="fas fa-gavel text-warning mr-2"></i> Attendance Disputes</h1>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${success}"></span>
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${error}"></span>
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">Pending Requests</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped projects">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th style="width: 40%;">Reason Provided</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="dispute : ${disputes}">
+                            <td>
+                                <strong th:text="${#temporals.format(dispute.date, 'dd MMM yyyy')}">Date</strong>
+                                <br>
+                                <small class="text-muted" th:text="${#temporals.format(dispute.date, 'EEEE')}">Day</small>
+                            </td>
+                            <td>
+                                <div class="user-block">
+                                    <img class="img-circle img-bordered-sm"
+                                         th:src="@{${employeeMap.get(dispute.employeeId).getPhotosImagePath()}}" alt="User Image">
+                                    <span class="username">
+                                            <a href="#" th:text="${employeeMap.get(dispute.employeeId).name}">Name</a>
+                                        </span>
+                                    <span class="description" th:text="${employeeMap.get(dispute.employeeId).designation}">Role</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="p-2 bg-light border rounded text-secondary">
+                                    <i class="fas fa-quote-left mr-2 text-muted"></i>
+                                    <span th:text="${dispute.disputeReason}">Reason...</span>
+                                </div>
+                            </td>
+                            <td class="project-actions text-center">
+                                <div class="d-flex justify-content-center gap-2">
+
+                                    <form th:action="@{/admin/disputes/resolve}" method="post" class="mr-2">
+                                        <input type="hidden" name="id" th:value="${dispute.id}">
+                                        <input type="hidden" name="action" value="ACCEPT">
+                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this dispute? User will get FULL salary for this day.')">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                    </form>
+
+                                    <form th:action="@{/admin/disputes/resolve}" method="post">
+                                        <input type="hidden" name="id" th:value="${dispute.id}">
+                                        <input type="hidden" name="action" value="REJECT">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject this dispute? User will remain ABSENT.')">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(disputes)}">
+                            <td colspan="4" class="text-center py-5">
+                                <i class="fas fa-clipboard-check fa-3x text-secondary mb-3"></i>
+                                <p class="text-muted">No pending disputes found.</p>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

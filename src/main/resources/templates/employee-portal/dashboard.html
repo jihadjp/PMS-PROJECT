@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Employee Portal | Payroll System</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ============================================
+           1. CORE GLASSMORPHISM THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode Defaults */
+            --bg-body: #f0f2f5;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+
+            /* Input & Card Accents */
+            --card-hover-bg: rgba(255, 255, 255, 0.9);
+            --input-bg: rgba(243, 244, 246, 0.9);
+            --filter-border: #d1d5db;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.15);
+            --success: #10b981;
+            --success-soft: rgba(16, 185, 129, 0.15);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+
+            --radius: 16px;
+        }
+
+        /* Dark Mode Overrides */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+
+            --card-hover-bg: rgba(30, 41, 59, 0.85);
+            --input-bg: rgba(30, 41, 59, 0.9);
+            --filter-border: #475569;
+        }
+
+        /* ============================================
+           2. GLOBAL STYLES & LAYOUT
+           ============================================ */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .hero-section {
+            padding: 20px 0 30px;
+            text-align: center;
+        }
+        .hero-title { font-size: 2.5rem; font-weight: 800; color: var(--text-primary); letter-spacing: -1px; margin-bottom: 5px; }
+
+        /* ============================================
+           3. STATS & ACTION CARDS
+           ============================================ */
+        .stat-card {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 100%; position: relative; overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-5px); background: var(--card-hover-bg); border-color: var(--primary); }
+
+        .btn-action-lg {
+            width: 100%; padding: 12px; border-radius: 50px; font-weight: 700; font-size: 1.1rem;
+            border: none; text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-check-in { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+        .btn-check-out { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; }
+
+        .ip-warning {
+            font-size: 0.8rem; color: var(--danger); font-weight: 600; margin-top: 10px;
+            background: rgba(239, 68, 68, 0.08); padding: 5px; border-radius: 5px; border: 1px solid var(--danger);
+        }
+
+        /* ============================================
+           4. TABLE STYLES (Payslips & Attendance)
+           ============================================ */
+        .glass-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .glass-table th {
+            color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+            padding: 10px 15px; border-bottom: 1px solid var(--glass-border);
+        }
+        .glass-table td {
+            background: var(--glass-bg); /* Use glass-bg for consistent look */
+            padding: 15px; vertical-align: middle; color: var(--text-primary);
+            border: 1px solid var(--glass-border); /* Use glass-border for definition */
+            border-left: none;
+            border-right: none;
+        }
+        .glass-table tr td:first-child { border-radius: 10px 0 0 10px; border-left: 1px solid var(--glass-border); }
+        .glass-table tr td:last-child { border-radius: 0 10px 10px 0; border-right: 1px solid var(--glass-border); }
+        .glass-table tr:hover td { background: var(--primary-soft); border-color: var(--primary); }
+
+        .financial-text { font-family: 'Courier New', monospace; font-weight: 600; }
+
+        /* Pills & Status */
+        .pill { padding: 5px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .pill-present { background: var(--success-soft); color: var(--success); }
+        .pill-absent { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .pill-view { background: var(--primary-soft); color: var(--primary); }
+
+        /* ============================================
+           5. PROFILE WIDGET
+           ============================================ */
+        .profile-pic {
+            width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--glass-bg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); object-fit: cover;
+        }
+        .filter-glass {
+            background-color: var(--input-bg); color: var(--text-primary); border: 1px solid var(--filter-border);
+            border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; appearance: none; transition: all 0.2s;
+        }
+        .profile-bg {
+            height: 100px; background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            border-radius: 16px 16px 0 0;
+        }
+        .profile-img-box { margin-top: -50px; display: inline-block; position: relative; }
+        .profile-details { padding: 15px 25px 25px; }
+        .profile-pic { /* Adjusted for profile widget */
+            width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--glass-bg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="hero-section">
+                <h1 class="welcome-title">Hello, <span th:text="${employee.name.split(' ')[0]}">Employee</span>!</h1>
+                <div class="hero-date">
+                    <i class="far fa-calendar-alt mr-2"></i>
+                    <span th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}">Date</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="row mb-4">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="glass-card stat-card">
+                        <div>
+                            <h6 style="color: var(--text-secondary); text-transform: uppercase;">This Month</h6>
+                            <h2 style="font-weight: 800; color: var(--text-primary); margin: 5px 0;">
+                                <span th:text="${presentDays}">0</span> <span style="font-size: 1rem;">Days</span>
+                            </h2>
+                            <small class="text-success"><i class="fas fa-arrow-up"></i> Present</small>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="glass-card stat-card">
+                        <div>
+                            <h6 style="color: var(--text-secondary); text-transform: uppercase;">Basic Salary</h6>
+                            <h2 style="font-weight: 800; color: var(--text-primary); margin: 5px 0;">
+                                ৳ <span th:text="${#numbers.formatDecimal(employee.basicSalary, 0, 'COMMA', 0, 'POINT')}">0</span>
+                            </h2>
+                            <small style="color: var(--text-secondary);">Fixed Monthly</small>
+                        </div>
+                        <div class="stat-icon" style="background: var(--success-soft); color: var(--success);">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-12 mb-3">
+                    <div class="glass-card stat-card" style="border: 2px solid var(--primary-soft); flex-direction: column; justify-content: center;">
+                        <div class="attendance-action w-100">
+
+                            <div th:if="${attendance != null and attendance.status == 'ABSENT'}" class="text-center w-100">
+                                <h5 style="color: var(--danger); font-weight: 700;">Absent (Admin Overruled)</h5>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">Your attendance was manually marked absent by Admin. If this is incorrect, raise a dispute.</p>
+
+                                <div th:if="${attendance != null and attendance.status == 'ABSENT'}" class="text-center w-100">
+                                    <h5 style="color: var(--danger); font-weight: 700;">Absent (Admin Overruled)</h5>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Your attendance was manually marked absent.</p>
+
+                                    <a th:href="@{/employee-portal/dispute-absence}" class="btn-action-lg d-block text-decoration-none pt-2"
+                                       style="background: linear-gradient(135deg, var(--warning), #d97706); color: white; padding-top:12px;">
+                                        <i class="fas fa-gavel mr-2"></i> Dispute Absence
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div th:if="${attendance == null}" class="text-center w-100">
+                                <h5 style="color: var(--text-primary); font-weight: 700;">Start your day</h5>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">Mark your attendance now</p>
+                                <form th:action="@{/employee-portal/mark-attendance}" method="post" id="checkInForm">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn-action-lg btn-check-in">
+                                        <i class="fas fa-right-to-bracket mr-2"></i> Check In Now
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div th:if="${attendance != null and attendance.checkInTime != null and attendance.checkOutTime == null and attendance.status != 'ABSENT'}" class="text-center w-100">
+                                <h5 style="color: var(--warning); font-weight: 700;">Currently Checked In</h5>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    Since: <span th:text="${#temporals.format(attendance.checkInTime, 'hh:mm a')}"></span>
+                                </p>
+                                <form th:action="@{/employee-portal/mark-attendance}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn-action-lg btn-check-out" onclick="return confirm('Confirm Check Out?');">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Check Out
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div th:if="${attendance != null and attendance.checkOutTime != null}" class="text-center w-100">
+                                <h5 style="color: var(--success); font-weight: 700;">Day Completed!</h5>
+
+                                <div style="background: var(--input-bg); padding: 10px; border-radius: 10px; margin-top: 10px;">
+                                    <div class="d-flex justify-content-between px-3">
+                                        <span class="text-secondary small">Total Hours:</span>
+                                        <span class="font-weight-bold text-primary" th:text="${#numbers.formatDecimal(attendance.workHours, 1, 1) + ' hrs'}"></span>
+                                    </div>
+                                    <div th:if="${attendance.overtimeHours > 0}" class="d-flex justify-content-between px-3 mt-1">
+                                        <span class="text-secondary small">Overtime:</span>
+                                        <span class="font-weight-bold text-success" th:text="${#numbers.formatDecimal(attendance.overtimeHours, 1, 1) + ' hrs'}"></span>
+                                    </div>
+                                </div>
+
+                                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 15px;">See you tomorrow!</p>
+                            </div>
+
+                            <div th:if="${attendance != null and attendance.checkInTime == null and attendance.checkOutTime == null and attendance.status != 'ABSENT'}" class="text-center w-100">
+                                <h5 style="color: var(--danger); font-weight: 700;">Data Error</h5>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">Attendance record found without Check-in time. Contact Admin.</p>
+                            </div>
+
+                            <p id="ipWarning" class="ip-warning" style="display: none;"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col-lg-8">
+
+
+                    <div class="glass-card mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center">
+                            <h4 style="margin: 0; font-weight: 700; color: var(--text-primary);">
+                                <i class="fas fa-history mr-2 text-primary"></i> Monthly Attendance Log
+                            </h4>
+
+                            <form th:action="@{/employee-portal/dashboard}" method="get" class="form-inline mt-2 mt-md-0" id="filterForm">
+                                <div class="d-flex gap-2">
+                                    <select name="month" class="filter-glass mr-2" onchange="this.form.submit()">
+                                        <option th:each="m : ${#numbers.sequence(1, 12)}"
+                                                th:value="${m}"
+                                                th:text="${T(java.time.Month).of(m).name()}"
+                                                th:selected="${m == selectedMonth}"></option>
+                                    </select>
+                                    <select name="year" class="filter-glass" onchange="this.form.submit()">
+                                        <option th:each="y : ${#numbers.sequence(2023, 2030)}"
+                                                th:value="${y}"
+                                                th:text="${y}"
+                                                th:selected="${y == selectedYear}"></option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-0 overflow-hidden">
+                        <div class="table-responsive">
+                            <table class="glass-table">
+                                <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Work Hours</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="log : ${monthlyAttendance}">
+                                    <td>
+                                        <span style="font-weight: 600;" th:text="${#temporals.format(log.date, 'dd MMM')}">01 Jan</span>
+                                        <div style="font-size: 0.75rem; color: var(--text-secondary);" th:text="${#temporals.format(log.date, 'EEEE')}">Monday</div>
+                                    </td>
+
+                                    <td style="color: var(--primary);">
+                                        <i class="far fa-clock mr-1"></i>
+                                        <span th:text="${log.checkInTime != null ? #temporals.format(log.checkInTime, 'hh:mm a') : '--:--'}"></span>
+                                    </td>
+
+                                    <td style="color: var(--danger);">
+                                        <i class="far fa-clock mr-1"></i>
+                                        <span th:text="${log.checkOutTime != null ? #temporals.format(log.checkOutTime, 'hh:mm a') : '--:--'}"></span>
+                                    </td>
+
+                                    <td>
+                                        <span th:if="${log.workHours != null}" th:text="${#numbers.formatDecimal(log.workHours, 1, 1) + ' hrs'}">8.0 hrs</span>
+                                        <span th:if="${log.workHours == null}">-</span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span th:if="${log.present}" class="pill pill-present">Present</span>
+                                        <span th:unless="${log.present}" class="pill pill-absent">Absent</span>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(monthlyAttendance)}">
+                                    <td colspan="5" class="text-center py-5" style="color: var(--text-secondary);">
+                                        No attendance records found for this period.
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-0 overflow-hidden">
+                        <div class="card-header-custom">
+                            <h3 class="card-title-custom"><i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>Salary History</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="glass-table">
+                                <thead>
+                                <tr>
+                                    <th>Generated Date</th>
+                                    <th>Salary Month</th>
+                                    <th>Total Earnings</th>
+                                    <th>Deductions</th>
+                                    <th>Net Payable</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="rec : ${myPayslips}">
+                                    <td>
+                                        <span th:text="${#temporals.format(rec.paymentDate, 'dd MMM yyyy')}"></span>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: 600;" th:text="${rec.month + '/' + rec.year}"></span>
+                                    </td>
+                                    <td class="text-success font-weight-bold financial-text">
+                                        ৳ <span th:text="${#numbers.formatDecimal(rec.basicSalary + rec.bonus, 0, 'COMMA', 0, 'POINT')}"></span>
+                                    </td>
+                                    <td class="text-danger font-weight-bold financial-text">
+                                        -৳ <span th:text="${#numbers.formatDecimal(rec.deductions, 0, 'COMMA', 0, 'POINT')}"></span>
+                                    </td>
+                                    <td style="font-weight: 800; color: var(--primary);" class="financial-text">
+                                        ৳ <span th:text="${#numbers.formatDecimal(rec.netPay, 0, 'COMMA', 0, 'POINT')}"></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a th:href="@{/payroll/payslip/{id}(id=${rec.id})}" target="_blank" class="pill pill-view">
+                                            <i class="fas fa-print"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(myPayslips)}">
+                                    <td colspan="6" class="text-center py-5" style="color: var(--text-secondary);">No payment history available.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="glass-card profile-glass">
+                        <div class="profile-bg"></div>
+                        <div class="profile-img-box">
+                            <img th:src="@{${employee.getPhotosImagePath()}}" class="profile-pic" alt="User" />
+                        </div>
+                        <div class="profile-details">
+                            <h4 style="font-weight: 700; margin-bottom: 5px;" th:text="${employee.name}">Name</h4>
+                            <span class="pill pill-view" th:text="${employee.designation}">ROLE</span>
+
+                            <div class="mt-4 text-left">
+                                <div class="detail-row">
+                                    <span style="color: var(--text-secondary);">Department</span>
+                                    <span style="font-weight: 600;" th:text="${employee.department}">IT</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span style="color: var(--text-secondary);">Employee ID</span>
+                                    <span style="font-weight: 600;" th:text="${employee.id}">101</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span style="color: var(--text-secondary);">Joining Date</span>
+                                    <span style="font-weight: 600;" th:text="${employee.joiningDate}">2023-01-01</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" th:if="${!myPenalties.isEmpty()}" style="border-left: 4px solid var(--danger);">
+                        <h5 style="color: var(--danger); font-weight: 700; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-circle mr-2"></i> Pending Fines
+                        </h5>
+                        <div th:each="p : ${myPenalties}" style="background: rgba(239,68,68,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(239,68,68,0.2);">
+                            <div class="d-flex justify-content-between font-weight-bold">
+                                <span th:text="${p.reason}">Reason</span>
+                                <span class="text-danger">৳ <span th:text="${p.penaltyAmount}">500</span></span>
+                            </div>
+                            <small class="text-secondary"><i class="far fa-calendar-alt mr-1"></i> <span th:text="${p.issueDate}">Date</span></small>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="border-left: 4px solid var(--primary);">
+                        <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i> Recent Payslip
+                        </h5>
+
+                        <div th:if="${myPayslips != null and !myPayslips.isEmpty()}">
+                            <div th:with="latest=${myPayslips[0]}" class="text-left">
+                                <p class="text-secondary small mb-1">Last Paid: <span th:text="${latest.month + '/' + latest.year}"></span></p>
+                                <h4 style="font-weight: 800; color: var(--success);">৳ <span th:text="${#numbers.formatDecimal(latest.netPay, 0, 'COMMA', 0, 'POINT')}"></span></h4>
+                                <a th:href="@{/payroll/payslip/{id}(id=${latest.id})}" class="btn btn-sm mt-2 pill-view">
+                                    <i class="fas fa-print"></i> View Slip
+                                </a>
+                            </div>
+                        </div>
+                        <div th:unless="${myPayslips != null and !myPayslips.isEmpty()}">
+                            <p class="text-secondary small mb-0">No recent payslips found.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Monthly Filter Initialization ---
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentMonth = urlParams.get('month') || new Date().getMonth() + 1;
+                const currentYear = urlParams.get('year') || new Date().getFullYear();
+
+                // Set initial values if they are null, based on URL parameters or current date
+                document.querySelector('select[name="month"]').value = currentMonth;
+                document.querySelector('select[name="year"]').value = currentYear;
+            }
+
+            // --- Check In Warning Logic ---
+            const checkinForm = document.getElementById('checkInForm');
+            if (checkinForm) {
+                checkinForm.addEventListener('submit', function(e) {
+                    const actionCard = document.querySelector('.attendance-action');
+                    let warning = document.getElementById('ipWarning');
+
+                    if (!warning) {
+                        warning = document.createElement('p');
+                        warning.id = 'ipWarning';
+                        warning.className = 'ip-warning';
+                        actionCard.appendChild(warning);
+                    }
+
+                    // Client-side visual feedback, server must enforce the IP check
+                    warning.style.display = 'block';
+                    warning.innerHTML = "<i class='fas fa-exclamation-triangle mr-1'></i> **ATTENTION**: The server is verifying your Office IP. Please wait.";
+                });
+            }
+        });
+    </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dashboard | Payroll System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ============================================
+           THEME VARIABLES (LIGHT & DARK GLASS)
+           ============================================ */
+        :root {
+            /* Default (Light Mode) Variables */
+            --page-bg: #f4f6f9;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-hover: rgba(255, 255, 255, 0.9);
+
+            /* Brand Colors */
+            --primary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --dark--page-bg: #0f172a;
+            --radius: 16px;
+        }
+
+        /* Dark Mode Overrides */
+        body.dark-mode {
+            --page-bg: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-hover: rgba(255, 255, 255, 0.05);
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .dashboard-content {
+            background-color: var(--page-bg);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Header */
+        .dashboard-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .header-title {
+            display: flex; align-items: center; gap: 15px;
+        }
+        .header-title h1 {
+            font-size: 1.8rem; font-weight: 800; margin: 0; letter-spacing: 0.5px; color: var(--text-main);
+        }
+        .header-title i {
+            font-size: 2rem; color: var(--primary);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: transparent; padding: 0; margin: 0; font-size: 0.9rem;
+        }
+        .breadcrumb-item a { text-decoration: none; color: var(--text-muted); font-weight: 500; }
+        .breadcrumb-item.active { color: var(--primary); font-weight: 600; }
+
+        /* ============================================
+           STATS CARDS
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease;
+            min-height: 160px;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .stat-card:hover { transform: translateY(-5px); }
+
+        /* Top Border Accents */
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        }
+        .stat-card.bg-info::before { background: #3b82f6; }
+        .stat-card.bg-success::before { background: var(--success); }
+        .stat-card.bg-purple::before { background: var(--purple); }
+        .stat-card.bg-danger::before { background: var(--danger); }
+
+        .stat-label {
+            color: var(--white); font-size: 0.85rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 2.2rem; font-weight: 800; color: var(--white); line-height: 1.2;
+        }
+        .stat-icon {
+            position: absolute; top: 20px; right: 20px; font-size: 3.5rem;
+            opacity: 0.1; color: var(--text-main); pointer-events: none;
+        }
+
+        .stat-footer {
+            color: var(--text-main);
+            margin-top: 15px; padding-top: 15px;
+            border-top: 1px solid var(--glass-border);
+        }
+        .stat-link {
+            text-decoration: none; font-weight: 600; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 8px; color: var(--white); transition: 0.2s;
+        }
+        .stat-link:hover { color: var(--dark--page-bg); gap: 12px; }
+
+        /* ============================================
+           MAIN GRID
+           ============================================ */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 380px;
+            gap: 25px; align-items: start;
+        }
+        @media (max-width: 1100px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .main-column, .sidebar-column { min-width: 0; }
+
+        /* ============================================
+           CHART & ACTIONS
+           ============================================ */
+        .chart-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            padding: 25px; border-radius: var(--radius);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow); margin-bottom: 30px;
+        }
+        .chart-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 20px; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+
+        /* Quick Actions */
+        .quick-actions-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px;
+        }
+        .action-card {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            padding: 20px; border-radius: 12px; text-align: center; text-decoration: none;
+            transition: all 0.3s; display: flex; flex-direction: column; align-items: center;
+        }
+        .action-card:hover {
+            transform: translateY(-5px); background: var(--card-hover);
+            border-color: var(--primary); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.15);
+        }
+        .action-icon {
+            width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 12px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .action-add .action-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .action-att .action-icon { background: linear-gradient(135deg, #10b981, #059669); }
+        .action-pay .action-icon { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .action-pen .action-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .action-title { color: var(--text-main); font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+        .action-desc { color: var(--text-muted); font-size: 0.8rem; margin: 0; }
+
+        /* ============================================
+           PENALTY LIST
+           ============================================ */
+        .penalty-section {
+            background: var(--glass-bg); backdrop-filter: blur(12px);
+            border-radius: var(--radius); border: 1px solid var(--glass-border);
+            overflow: hidden; display: flex; flex-direction: column; height: 650px;
+            box-shadow: var(--glass-shadow);
+        }
+        .penalty-header {
+            padding: 20px; border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .penalty-title { color: var(--text-main); font-size: 1rem; font-weight: 700; margin: 0; }
+        .penalty-badge {
+            background: rgba(239, 68, 68, 0.1); color: var(--danger);
+            padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .penalty-body { flex: 1; overflow-y: auto; padding: 0; }
+        .penalty-table { width: 100%; border-collapse: collapse; }
+        .penalty-table th {
+            text-align: left; padding: 15px 20px; font-size: 0.7rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1px;
+            background: rgba(128, 128, 128, 0.05); position: sticky; top: 0; z-index: 10;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .penalty-table td {
+            padding: 15px 20px; border-bottom: 1px solid var(--glass-border);
+            vertical-align: middle; color: var(--text-main);
+        }
+        .penalty-table tr:hover { background: rgba(128, 128, 128, 0.05); }
+
+        .emp-profile img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); margin-right: 10px; }
+        .btn-email {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(99, 102, 241, 0.1); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; text-decoration: none;
+        }
+        .btn-email:hover { background: var(--primary); color: white; }
+
+        .penalty-footer { padding: 15px; border-top: 1px solid var(--glass-border); text-align: center; }
+        .view-all-link { color: var(--primary); font-weight: 600; font-size: 0.85rem; text-decoration: none; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="dashboard-content">
+
+        <div class="dashboard-header">
+            <div class="header-title">
+                <i class="fas fa-chart-pie"></i>
+                <h1>Dashboard</h1>
+            </div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                    <li class="breadcrumb-item active">Overview</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card bg-info">
+                <div class="stat-content">
+                    <div class="stat-label">Total Employee</div>
+                    <div class="stat-value" th:text="${totalEmployees != null ? totalEmployees : 0}">0</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-footer">
+                    <a th:href="@{/employees}" class="stat-link">Manage Employee <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="stat-card bg-success">
+                <div class="stat-content">
+                    <div class="stat-label">Total Disbursed</div>
+                    <div class="stat-value">
+                        ৳<span th:text="${totalPayroll != null ? #numbers.formatDecimal(totalPayroll, 0, 'COMMA', 0, 'POINT') : 0}">0</span>
+                    </div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="stat-footer">
+                    <a th:href="@{/payroll/sheet}" class="stat-link">View Financials <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="stat-card bg-purple">
+                <div class="stat-content">
+                    <div class="stat-label">Absent Today</div>
+                    <div class="stat-value" th:text="${absentToday != null ? absentToday : 0}">0</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                <div class="stat-footer">
+                    <a th:href="@{/attendance/list}" class="stat-link">Attendance Log <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="stat-card bg-danger">
+                <div class="stat-content">
+                    <div class="stat-label">Pending Charges</div>
+                    <div class="stat-value" th:text="${pendingPenalties != null ? pendingPenalties : 0}">0</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-gavel"></i></div>
+                <div class="stat-footer">
+                    <a href="#penaltySection" class="stat-link">Review List <i class="fas fa-arrow-down"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="main-column">
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h4 class="chart-title">Payroll Analytics</h4>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="payrollChart"></canvas>
+                    </div>
+                </div>
+
+                <h4 style="font-weight: 600; margin-bottom: 20px; color: var(--text-main);">Quick Actions</h4>
+                <div class="quick-actions-grid">
+                    <a th:href="@{/employees/add}" class="action-card action-add">
+                        <div class="action-icon"><i class="fas fa-user-plus"></i></div>
+                        <span class="action-title">Add Staff</span>
+                        <p class="action-desc">Register new employee</p>
+                    </a>
+                    <a th:href="@{/attendance/mark}" class="action-card action-att">
+                        <div class="action-icon"><i class="fas fa-fingerprint"></i></div>
+                        <span class="action-title">Attendance</span>
+                        <p class="action-desc">Mark daily log</p>
+                    </a>
+                    <a th:href="@{/payroll/generate}" class="action-card action-pay">
+                        <div class="action-icon"><i class="fas fa-coins"></i></div>
+                        <span class="action-title">Run Payroll</span>
+                        <p class="action-desc">Process salaries</p>
+                    </a>
+                    <a th:href="@{/penalty/list}" class="action-card action-pen">
+                        <div class="action-icon"><i class="fas fa-file-invoice"></i></div>
+                        <span class="action-title">Penalties</span>
+                        <p class="action-desc">Manage fines</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-column" id="penaltySection">
+                <div class="penalty-section">
+                    <div class="penalty-header">
+                        <h5 class="penalty-title"><i class="fas fa-exclamation-triangle mr-2"></i> Recent Charges</h5>
+                        <span class="penalty-badge" th:text="${(pendingPenalties != null ? pendingPenalties : 0) + ' Pending'}">0 Pending</span>
+                    </div>
+                    <div class="penalty-body">
+                        <table class="penalty-table">
+                            <thead>
+                            <tr><th>Employee</th><th>Reason</th><th class="text-right">Amount</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${recentPenalties != null}" th:each="charge : ${recentPenalties}">
+                                <td>
+                                    <div class="emp-profile">
+                                        <img th:src="@{${charge.employee.imageUrl != null ? charge.employee.imageUrl : '/dist/img/user2-160x160.jpg'}}">
+                                        <div>
+                                            <span class="emp-name" th:text="${charge.employee.name}">Name</span>
+                                            <span class="emp-date" th:text="${charge.issueDate}">Date</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${charge.reason}">Reason</td>
+                                <td class="text-right text-danger font-weight-bold" th:text="'৳' + ${charge.penaltyAmount}">৳0</td>
+                                <td class="text-center"><a th:href="'mailto:' + ${charge.employee.email}" class="btn-email"><i class="fas fa-envelope"></i></a></td>
+                            </tr>
+                            <tr th:if="${recentPenalties == null or #lists.isEmpty(recentPenalties)}">
+                                <td colspan="4" class="text-center py-5 text-muted">No pending charges found!</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="penalty-footer">
+                        <a th:href="@{/penalty/list}" class="view-all-link">View All Records <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(function () {
+            var ctx = document.getElementById('payrollChart');
+            if(!ctx) return;
+
+            // Safe Data Loading
+            var serverData = /*[[${monthlyPayrollData}]]*/ [];
+            var chartData = (serverData && serverData.length > 0) ? serverData : [0,0,0,0,0,0,0,0,0,0,0,0];
+
+            // Dynamic Colors based on theme
+            var isDark = document.body.classList.contains('dark-mode');
+            var gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+            var textColor = isDark ? '#94a3b8' : '#64748b';
+
+            // Gradient for Area Fill (নিচ থেকে উপরে হালকা হবে)
+            var gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)'); // উপরে গাঢ় (Primary)
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)'); // নিচে স্বচ্ছ
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line', // এটি লাইন চার্ট, কিন্তু ফিল করা হবে
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Expense',
+                        data: chartData,
+                        backgroundColor: gradient, // গ্র্যাডিয়েন্ট ফিল
+                        borderColor: '#6366f1',    // লাইনের কালার
+                        borderWidth: 3,
+                        pointBackgroundColor: isDark ? '#0f172a' : '#fff',
+                        pointBorderColor: '#6366f1',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true,  // এটিই নিচের অংশ ভরাট করবে (Area Chart)
+                        tension: 0.4 // লাইনটি স্মুথ বা কার্ভ হবে
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDark ? '#fff' : '#333',
+                            bodyColor: isDark ? '#fff' : '#333',
+                            borderColor: 'rgba(0,0,0,0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ৳ ' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, borderDash: [5, 5] },
+                            ticks: { color: textColor, callback: function(v){return '৳' + v} }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor }
+                        }
+                    }
+                }
+            });
+        });
+        /*]]>*/
+    </script>
+</th:block>
+
+</body>
+</html>

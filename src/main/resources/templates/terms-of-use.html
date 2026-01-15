@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Terms of Use | Payroll System</title>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.1);
+            --radius: 12px;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+
+            --primary-soft: rgba(79, 70, 229, 0.2);
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 25px 0; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        /* Terms Card */
+        .terms-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 50px;
+            margin-bottom: 30px;
+        }
+
+        /* Header */
+        .terms-header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+        .terms-title { font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; }
+        .effective-date { color: var(--text-secondary); font-size: 0.9rem; font-style: italic; }
+
+        /* Content Typography */
+        .terms-content p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            display: flex; align-items: center;
+        }
+
+        .icon-box {
+            width: 35px; height: 35px; border-radius: 8px;
+            background: var(--primary-soft); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 12px; font-size: 1rem;
+        }
+
+        /* List Styles */
+        .terms-list {
+            list-style: none; padding-left: 10px; margin-bottom: 20px;
+        }
+        .terms-list li {
+            position: relative; padding-left: 25px; margin-bottom: 10px;
+            color: var(--text-secondary); line-height: 1.6;
+        }
+        .terms-list li::before {
+            content: '\f0da'; /* FontAwesome caret-right */
+            font-family: 'Font Awesome 5 Free'; font-weight: 900;
+            color: var(--primary);
+            position: absolute; left: 0; top: 2px; font-size: 0.9rem;
+        }
+
+        /* Contact Box */
+        .contact-box {
+            background: var(--primary-soft);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .contact-box h3 { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+        .contact-box p { margin-bottom: 5px; color: var(--text-secondary); }
+        .contact-box a { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .contact-box a:hover { text-decoration: underline; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .terms-card { padding: 30px 20px; }
+            .terms-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+
+                    <div class="terms-card">
+
+                        <div class="terms-header">
+                            <h1 class="terms-title">Terms of Use</h1>
+                            <p class="effective-date">Effective Date: December 4, 2025</p>
+                        </div>
+
+                        <div class="terms-content">
+                            <p>Welcome to the <strong>Payroll Management System</strong>. These Terms of Use ("Terms") govern your access to and use of our system. By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.</p>
+
+                            <h2 class="section-title">
+                                <div class="icon-box"><i class="fas fa-handshake"></i></div>
+                                1. Acceptance of Terms
+                            </h2>
+                            <p>By logging into this system, you acknowledge that you are an authorized employee or administrator of the organization. Unauthorized access is strictly prohibited and may result in legal action.</p>
+
+                            <h2 class="section-title">
+                                <div class="icon-box"><i class="fas fa-user-check"></i></div>
+                                2. User Responsibilities
+                            </h2>
+                            <p>As a user of this system, you agree to:</p>
+                            <ul class="terms-list">
+                                <li>Maintain the confidentiality of your login credentials (username and password).</li>
+                                <li>Ensure that all personal information provided is accurate and up-to-date.</li>
+                                <li>Use the system only for lawful purposes related to your employment.</li>
+                                <li>Report any unauthorized use of your account immediately to the IT department.</li>
+                            </ul>
+
+                            <h2 class="section-title">
+                                <div class="icon-box"><i class="fas fa-ban"></i></div>
+                                3. Prohibited Activities
+                            </h2>
+                            <p>You may not access or use the system for any purpose other than that for which we make it available. Prohibited activities include:</p>
+                            <ul class="terms-list">
+                                <li>Attempting to bypass security measures or access data belonging to other employees.</li>
+                                <li>Interfering with, disrupting, or creating an undue burden on the system or networks.</li>
+                                <li>Uploading viruses or malicious code.</li>
+                                <li>Harassing, annoying, intimidating, or threatening any employees engaged in providing any portion of the service.</li>
+                            </ul>
+
+                            <h2 class="section-title">
+                                <div class="icon-box"><i class="fas fa-copyright"></i></div>
+                                4. Intellectual Property Rights
+                            </h2>
+                            <p>The Payroll Management System, including its source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics (collectively, the "Content"), are owned by <strong>Axiom Devs</strong> and are protected by copyright and trademark laws.</p>
+
+                            <h2 class="section-title">
+                                <div class="icon-box"><i class="fas fa-exclamation-triangle"></i></div>
+                                5. Limitation of Liability
+                            </h2>
+                            <p>In no event shall the company or its directors, employees, or agents be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising out of your access to, or use of, the system. The system is provided on an "AS IS" and "AS AVAILABLE" basis.</p>
+
+                            <h2 class="section-title">
+                                <div class="icon-box"><i class="fas fa-user-slash"></i></div>
+                                6. Termination
+                            </h2>
+                            <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. Upon termination, your right to use the Service will immediately cease.</p>
+
+                            <div class="contact-box">
+                                <h3><i class="fas fa-envelope-open-text mr-2"></i>Questions about these Terms?</h3>
+                                <p>If you have any questions regarding these Terms of Use, please contact the Legal Department.</p>
+                                <p style="margin-top: 10px;">
+                                    Email: <a href="mailto:support@axiomdevs.com" style="color: #eb7a55;" th:text="${supportEmail}">support@axiomdevs.com</a>
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,469 @@
+<div th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <style>
+        /* =========================================
+           SIDEBAR THEME VARIABLES (CONSOLIDATED)
+           ========================================= */
+        :root {
+            /* --- Light Mode Defaults --- */
+            --sidebar-bg: rgba(255, 255, 255, 0.85);
+            --sidebar-border: 1px solid rgba(255, 255, 255, 0.6);
+            --sidebar-shadow: 5px 0 25px rgba(0, 0, 0, 0.05);
+
+            /* Text Colors */
+            --text-brand: #1e293b;
+            --text-primary: #475569;
+            --text-hover: #0f172a;
+
+            /* Interaction Colors */
+            --item-hover-bg: rgba(0, 0, 0, 0.04);
+
+            /* Logic: Parent vs Child Colors */
+            --parent-open-bg: rgba(0, 0, 0, 0.03);      /* Opened Parent Background */
+            --submenu-bg: rgba(0, 0, 0, 0.02);          /* Submenu Container Background */
+            --child-active-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); /* Active Child */
+            --active-text: #ffffff;
+            --active-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+
+            /* Modal */
+            --modal-bg: #ffffff;
+            --modal-text: #334155;
+            --list-border: rgba(0,0,0,0.1);
+        }
+
+        /* --- Dark Mode Overrides --- */
+        body.dark-mode {
+            --sidebar-bg: rgba(15, 23, 42, 0.85);
+            --sidebar-border: 1px solid rgba(255, 255, 255, 0.05);
+            --sidebar-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+
+            /* Text Colors */
+            --text-brand: #ffffff;
+            --text-primary: #cbd5e1;
+            --text-hover: #ffffff;
+
+            /* Interaction Colors */
+            --item-hover-bg: rgba(255, 255, 255, 0.05);
+
+            /* Logic: Parent vs Child Colors */
+            --parent-open-bg: rgba(255, 255, 255, 0.05);
+            --submenu-bg: rgba(0, 0, 0, 0.2);
+            --child-active-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+            --active-text: #ffffff;
+            --active-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+
+            /* Modal */
+            --modal-bg: #1e293b;
+            --modal-text: #f8fafc;
+            --list-border: rgba(255,255,255,0.1);
+        }
+
+        /* =========================================
+           MAIN CONTAINER
+           ========================================= */
+        .main-sidebar {
+            background: var(--sidebar-bg) !important;
+            border-right: var(--sidebar-border);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: var(--sidebar-shadow);
+            transition: background 0.3s ease, border 0.3s ease;
+            z-index: 1040;
+        }
+
+        /* Header & User Panel */
+        .brand-link { border-bottom: 1px solid var(--list-border) !important; transition: all 0.3s; }
+        .brand-text { color: var(--text-brand) !important; font-weight: 600 !important; transition: color 0.3s; }
+        .user-panel { border-bottom: 1px solid var(--list-border) !important; margin-top: 10px; padding-bottom: 10px; }
+        .user-panel .info span { color: var(--text-brand) !important; }
+
+        /* =========================================
+           NAVIGATION LOGIC
+           ========================================= */
+
+        /* 1. Base Link Style */
+        .nav-sidebar .nav-link {
+            color: var(--text-primary) !important;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+        }
+
+        /* 2. Hover State */
+        .nav-sidebar .nav-link:hover {
+            background-color: var(--item-hover-bg) !important;
+            color: var(--text-hover) !important;
+            transform: translateX(4px);
+        }
+
+        /* 3. PARENT OPEN STATE (When menu opens but not clicked on parent itself) */
+        .nav-sidebar .nav-item.menu-open > .nav-link {
+            background-color: var(--parent-open-bg) !important;
+            color: var(--text-brand) !important;
+            font-weight: 700;
+        }
+
+        /* 4. SUBMENU CONTAINER */
+        .nav-treeview {
+            background-color: var(--submenu-bg);
+            border-radius: 10px;
+            margin: 5px 10px; /* Indent */
+            padding: 5px;
+        }
+
+        /* 5. ACTIVE STATE (The selected page) */
+        .nav-sidebar .nav-link.active {
+            background: var(--child-active-gradient) !important;
+            color: var(--active-text) !important;
+            box-shadow: var(--active-shadow);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-weight: 600;
+        }
+
+        .nav-sidebar .nav-link.active .nav-icon { color: #fff !important; }
+        .nav-icon { color: #94a3b8; transition: color 0.2s; }
+
+        /* Scrollbar */
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.2); border-radius: 10px; }
+        .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.4); }
+
+        /* Modal Styling */
+        .modal-dark-content {
+            background-color: var(--modal-bg);
+            color: var(--modal-text);
+            border: 1px solid var(--list-border);
+            backdrop-filter: blur(20px);
+        }
+        .list-group-item-dark {
+            background-color: transparent;
+            border-color: var(--list-border);
+            color: var(--modal-text);
+        }
+        .close { color: var(--modal-text) !important; text-shadow: none; opacity: 0.7; }
+        .close:hover { opacity: 1; }
+
+        .brand img,
+        .brand a,
+        .navbar-brand img {
+            border-radius: 0 !important;
+        }
+
+        .sidebar-banner-logo {
+            width: 100%;
+            height: 45px;           /* যেকোন height দিতে পারো */
+            object-fit: contain;    /* ছবিটাকে সুন্দরভাবে ফিট করাবে */
+            border-radius: 0;       /* round বন্ধ */
+            margin: 5px 0;
+        }
+
+
+    </style>
+
+    <aside class="main-sidebar elevation-4">
+
+        <a th:href="${#authorization.expression('hasRole(''EMPLOYEE'')')
+        ? '/employee-portal/dashboard' : '/'}"
+           class="brand-link d-flex align-items-center justify-content-center">
+
+            <img th:src="@{/images/logo_banner.jpg}"
+                 alt="Logo Banner"
+                 class="sidebar-banner-logo">
+        </a>
+
+
+
+
+        <div class="sidebar">
+
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex" sec:authorize="isAuthenticated()">
+                <a th:href="${#authorization.expression('hasRole(''EMPLOYEE'')') ? '/employee-portal/profile' : '/admin/profile'}"
+                   class="d-flex w-100 align-items-center" style="text-decoration: none;">
+                    <div class="image">
+                        <img th:src="@{${#authentication.principal.user.getPhotosImagePath}}"
+                             class="img-circle elevation-2"
+                             style="border: 2px solid #6366f1; width: 35px; height: 35px; object-fit: cover;"
+                             alt="User Image">
+                    </div>
+                    <div class="info pl-2">
+                        <span class="d-block font-weight-bold" th:text="${#authentication.principal.user.fullName}">User Name</span>
+                        <small class="text-muted" style="font-size: 0.75rem;">
+                            <i class="fas fa-shield-alt mr-1"></i> <span th:text="${#authentication.principal.user.role}">ROLE</span>
+                        </small>
+                    </div>
+                </a>
+            </div>
+
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex" sec:authorize="!isAuthenticated()">
+                <div class="info pl-2">
+                    <a th:href="@{/login}" class="d-block font-weight-bold" style="color: #6366f1;">
+                        <i class="fas fa-user-circle mr-1"></i> Guest User
+                    </a>
+                </div>
+            </div>
+
+            <nav class="mt-2 pb-4">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
+                    data-accordion="false" id="sidebar-menu">
+
+                    <li class="nav-item">
+                        <a th:href="${#authorization.expression('hasRole(''EMPLOYEE'')') ? '/employee-portal/dashboard' : '/'}"
+                           class="nav-link">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>Dashboard</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                        <a th:href="@{/employee-portal/profile}" class="nav-link">
+                            <i class="nav-icon fas fa-id-card"></i>
+                            <p>My Profile</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item has-treeview" sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>
+                                Employee Management
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a th:href="@{/employees/add}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-success"></i>
+                                    <p>Add New Employee</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/employees}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-info"></i>
+                                    <p>All Employees</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/attendance/list}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-warning"></i>
+                                    <p>Check Attendance</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/attendance/mark}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-purple"></i>
+                                    <p>Take Attendance</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/penalty/list}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-danger"></i>
+                                    <p>Penalty List</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item has-treeview" sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                            <p>
+                                Payroll Operations
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a th:href="@{/payroll/generate}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-warning"></i>
+                                    <p>Run Payroll</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/payroll/sheet}" class="nav-link">
+                                    <i class="far fa-circle nav-icon text-primary"></i>
+                                    <p>Salary Sheets</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')">
+                        <a th:href="@{/admin/disputes}" class="nav-link">
+                            <i class="nav-icon fas fa-gavel"></i>
+                            <p>Disputes Request</p>
+                        </a>
+                    </li>
+
+
+
+                    <li class="nav-header text-muted font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">SYSTEM</li>
+
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')">
+                        <a href="#" class="nav-link" data-toggle="modal" data-target="#systemStatusModal">
+                            <i class="nav-icon fas fa-heartbeat text-danger"></i> <p>System Health</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a sec:authorize="hasAnyRole('ADMIN', 'SUPER_ADMIN')" th:href="@{/admin/settings}" class="nav-link">
+                            <i class="nav-icon fas fa-cogs"></i>
+                            <p>Settings</p>
+                        </a>
+                        <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/employee-portal/settings}" class="nav-link">
+                            <i class="nav-icon fas fa-user-cog"></i>
+                            <p>Settings</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" id="logoutForm" style="display: none;"></form>
+                        <a href="#" class="nav-link" style="color: #ef4444 !important;" onclick="document.getElementById('logoutForm').submit();">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <p>Logout</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}" class="nav-link" style="color: #3b82f6 !important;">
+                            <i class="nav-icon fas fa-sign-in-alt"></i>
+                            <p>Login</p>
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+        </div>
+    </aside>
+
+    <div class="modal fade" id="systemStatusModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content modal-dark-content">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title"><i class="fas fa-server mr-2 text-primary"></i> System Status Monitor</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group list-group-flush" id="healthDataContent">
+                        <div class="text-center py-4">
+                            <i class="fas fa-circle-notch fa-spin fa-2x text-primary"></i>
+                            <p class="mt-2 text-muted small">Analyzing System Metrics...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var currentUrl = window.location.pathname;
+            var sidebarLinks = document.querySelectorAll('.nav-sidebar .nav-link');
+
+            sidebarLinks.forEach(function (link) {
+                var linkHref = link.getAttribute('href');
+
+                if (linkHref && linkHref !== '#') {
+                    var isActive = false;
+
+                    // 1. Exact Match
+                    if (currentUrl === linkHref) isActive = true;
+
+                    // 2. Partial Match (Excluding root and base path conflicts)
+                    else if (currentUrl.startsWith(linkHref) && linkHref !== '/' && linkHref !== '/employees') {
+                        isActive = true;
+                    }
+
+                    // 3. Specific Fixes for Employee Routes
+                    if (linkHref === '/employees' && currentUrl === '/employees') isActive = true;
+                    if (linkHref === '/employees/add' && currentUrl === '/employees/add') isActive = true;
+
+                    if (isActive) {
+                        link.classList.add('active');
+
+                        // Open Parent Treeview & Close Others
+                        var parentNavTree = link.closest('.nav-treeview');
+                        if (parentNavTree) {
+                            parentNavTree.style.display = 'block';
+                            var parentItem = parentNavTree.closest('.nav-item');
+                            if (parentItem) {
+                                parentItem.classList.add('menu-open');
+
+                                // Optional: Style the parent link
+                                // var parentLink = parentItem.querySelector('a.nav-link');
+                                // if (parentLink) parentLink.style.backgroundColor = 'var(--parent-open-bg)';
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Auto-Close Logic for Accordion Effect
+            const parentLinks = document.querySelectorAll('.nav-item.has-treeview > .nav-link');
+            parentLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const parentLi = this.parentElement;
+                    const isOpening = !parentLi.classList.contains('menu-open');
+
+                    if (isOpening) {
+                        // Close other open menus
+                        document.querySelectorAll('.nav-item.has-treeview.menu-open').forEach(item => {
+                            if (item !== parentLi) {
+                                item.classList.remove('menu-open');
+                                const treeview = item.querySelector('.nav-treeview');
+                                if(treeview) treeview.style.display = 'none';
+                            }
+                        });
+                    }
+                });
+            });
+
+            // System Health Fetcher
+            $('#systemStatusModal').on('show.bs.modal', function () {
+                fetch('/api/system-health').then(r=>r.json()).then(data => {
+                    let html = `
+                        <div class="row mb-3 text-center">
+                            <div class="col-6 border-right border-secondary">
+                                <small class="text-muted text-uppercase font-weight-bold" style="font-size: 10px;">Database</small>
+                                <div class="font-weight-bold text-${data.dbColor}">
+                                    <i class="fas fa-database mr-1"></i> ${data.dbStatus}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted text-uppercase font-weight-bold" style="font-size: 10px;">System Uptime</small>
+                                <div class="font-weight-bold text-info">
+                                    <i class="fas fa-clock mr-1"></i> ${data.uptime}
+                                </div>
+                            </div>
+                        </div>
+                        <hr style="border-color: rgba(255,255,255,0.1);">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-white"><i class="fas fa-memory mr-1"></i> RAM Usage</small>
+                                <small class="text-muted">${data.memoryUsed} / ${data.memoryTotal}</small>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                <div class="progress-bar bg-warning" style="width: ${data.memoryPercent}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-white"><i class="fas fa-hdd mr-1"></i> Disk Storage</small>
+                                <small class="text-muted">${data.diskUsed} / ${data.diskTotal}</small>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                <div class="progress-bar bg-success" style="width: ${data.diskPercent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('healthDataContent').innerHTML = html;
+                });
+            });
+        });
+    </script>
+</div>

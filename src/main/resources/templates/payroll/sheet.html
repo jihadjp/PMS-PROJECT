@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Salary History | Payroll System</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --table-hover: #f8fafc;
+            --input-bg: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 10px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --table-hover: #334155;
+            --input-bg: #0f172a;
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 20px 0; }
+
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 20px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0;
+        }
+
+        /* ============================================
+           3. FILTER SECTION
+           ============================================ */
+        .form-control-custom, .custom-select-custom {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            height: 45px;
+        }
+        .form-control-custom:focus, .custom-select-custom:focus {
+            background-color: var(--bg-card);
+            border-color: var(--primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-filter {
+            background: var(--primary); color: white; border: none; height: 45px; padding: 0 20px; border-radius: 8px;
+        }
+        .btn-reset {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); height: 45px; padding: 0 20px; border-radius: 8px;
+        }
+        .btn-reset:hover { background: var(--bg-body); color: var(--text-primary); }
+
+        /* ============================================
+           4. TABLE STYLES
+           ============================================ */
+        table.dataTable {
+            border-collapse: collapse !important; width: 100% !important; margin-top: 10px !important; color: var(--text-primary);
+        }
+
+        .table thead th {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color); padding: 15px;
+        }
+
+        .table tbody tr {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .table tbody tr:hover { background-color: var(--table-hover) !important; }
+        .table td { padding: 15px; vertical-align: middle; border-top: none; }
+
+        /* Financial Data Styling */
+        .text-amount { font-family: 'Consolas', monospace; font-size: 0.95rem; }
+        .amt-plus { color: var(--success); font-weight: 600; }
+        .amt-minus { color: var(--danger); font-weight: 600; }
+        .amt-net { color: var(--primary); font-weight: 800; font-size: 1.1rem; }
+
+        /* User Info */
+        .user-block img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); float: left; margin-right: 10px;
+        }
+        .username { display: block; font-size: 0.95rem; font-weight: 700; margin-top: 2px; }
+        .username a { color: var(--text-primary); text-decoration: none; }
+        .description { display: block; font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Date Badge */
+        .date-badge {
+            background: rgba(79, 70, 229, 0.1); color: var(--primary);
+            padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 5px;
+        }
+
+        /* Action Button */
+        .btn-print {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);
+            padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; transition: 0.2s;
+        }
+        .btn-print:hover { border-color: var(--text-primary); color: var(--text-primary); background: var(--bg-body); }
+
+        /* DataTables Controls */
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--bg-body); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-primary); padding: 5px 10px;
+        }
+        .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary) !important; font-size: 0.85rem; margin-top: 15px;
+        }
+        .page-item .page-link { background: var(--bg-card); border-color: var(--border-color); color: var(--text-secondary); }
+        .page-item.active .page-link { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .content-header .row { text-align: center; gap: 10px; }
+            .btn-filter, .btn-reset { width: 100%; margin-top: 10px; }
+            .filter-row { flex-direction: column; }
+            .filter-col { width: 100%; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-sm-6">
+                    <h1 class="page-title"><i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>Salary History</h1>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-home mr-1"></i> Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="content-card">
+                <form th:action="@{/payroll/sheet}" method="get">
+                    <div class="row align-items-end filter-row">
+                        <div class="col-md-4 filter-col">
+                            <label class="font-weight-bold text-secondary small">SELECT MONTH</label>
+                            <select name="month" class="form-control custom-select-custom">
+                                <option value="" th:selected="${selectedMonth == null}">-- All Months --</option>
+                                <option th:selected="${selectedMonth == 1}" value="1">January</option>
+                                <option th:selected="${selectedMonth == 2}" value="2">February</option>
+                                <option th:selected="${selectedMonth == 3}" value="3">March</option>
+                                <option th:selected="${selectedMonth == 4}" value="4">April</option>
+                                <option th:selected="${selectedMonth == 5}" value="5">May</option>
+                                <option th:selected="${selectedMonth == 6}" value="6">June</option>
+                                <option th:selected="${selectedMonth == 7}" value="7">July</option>
+                                <option th:selected="${selectedMonth == 8}" value="8">August</option>
+                                <option th:selected="${selectedMonth == 9}" value="9">September</option>
+                                <option th:selected="${selectedMonth == 10}" value="10">October</option>
+                                <option th:selected="${selectedMonth == 11}" value="11">November</option>
+                                <option th:selected="${selectedMonth == 12}" value="12">December</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 filter-col">
+                            <label class="font-weight-bold text-secondary small">YEAR</label>
+                            <input type="number" name="year" class="form-control form-control-custom" placeholder="2025" th:value="${selectedYear}">
+                        </div>
+                        <div class="col-md-5 text-right mt-3 mt-md-0">
+                            <button type="submit" class="btn btn-filter shadow-sm">
+                                <i class="fas fa-filter mr-1"></i> Filter Data
+                            </button>
+                            <a th:href="@{/payroll/sheet}" class="btn btn-reset ml-2">
+                                <i class="fas fa-undo mr-1"></i> Reset
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="content-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+                        Payroll Records: <span style="color: var(--primary);" th:text="${selectedMonth != null ? selectedMonth + '/' + selectedYear : 'All Records'}"></span>
+                    </h3>
+                    <a th:href="@{/payroll/generate}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" style="background: var(--primary); border: none;">
+                        <i class="fas fa-plus mr-1"></i> New Payroll
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="salaryTable" class="table w-100">
+                        <thead>
+                        <tr>
+                            <th>Generated Date</th>
+                            <th>Employee Info</th>
+                            <th>Earnings</th>
+                            <th>Deductions</th>
+                            <th>Net Payable</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="rec : ${records}">
+
+                            <td class="align-middle">
+                                <span class="d-block font-weight-bold" style="color: var(--text-primary);" th:text="${rec.paymentDate}"></span>
+                                <span class="date-badge">
+                                    <i class="far fa-calendar-alt mr-1"></i> <span th:text="${rec.month + '-' + rec.year}"></span>
+                                </span>
+                            </td>
+
+                            <td class="align-middle">
+                                <div class="user-block">
+                                    <img th:src="@{${rec.getPhotosImagePath}}"
+                                         alt="User Image"
+                                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+
+                                    <span class="username">
+                                        <a href="#" th:text="${rec.employeeName}">Name</a>
+                                    </span>
+                                    <span class="description" th:text="${rec.designation}">Designation</span>
+                                </div>
+                            </td>
+
+                            <td class="align-middle text-amount">
+                                <div class="d-flex justify-content-between" style="max-width: 160px; color: var(--text-secondary);">
+                                    <span>Basic:</span>
+                                    <span style="color: var(--text-primary);"><span th:text="${#numbers.formatDecimal(rec.basicSalary, 0, 'COMMA', 0, 'POINT')}"></span></span>
+                                </div>
+                                <div class="d-flex justify-content-between amt-plus" style="max-width: 160px;">
+                                    <span>Bonus/OT:</span>
+                                    <span>+<span th:text="${#numbers.formatDecimal(rec.bonus, 0, 'COMMA', 0, 'POINT')}"></span></span>
+                                </div>
+                            </td>
+
+                            <td class="align-middle text-amount amt-minus">
+                                - <span th:text="${#numbers.formatDecimal(rec.deductions, 0, 'COMMA', 0, 'POINT')}"></span>
+                            </td>
+
+                            <td class="align-middle text-amount amt-net">
+                                ৳ <span th:text="${#numbers.formatDecimal(rec.netPay, 0, 'COMMA', 0, 'POINT')}"></span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <a th:href="@{/payroll/payslip/{id}(id=${rec.id})}" target="_blank" class="btn-print" title="Print Payslip">
+                                    <i class="fas fa-print mr-1"></i> Print
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div th:if="${#lists.isEmpty(records)}" class="text-center py-5">
+                        <i class="fas fa-folder-open fa-3x mb-3" style="color: var(--border-color);"></i>
+                        <p style="color: var(--text-secondary);">No payroll records found for this period.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#salaryTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                "order": [ [0, "desc"] ],
+                "lengthChange": false,
+                "pageLength": 10,
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search record..."
+                }
+            });
+
+            // Adjust search bar style
+            $('.dataTables_filter input').css('width', '250px');
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

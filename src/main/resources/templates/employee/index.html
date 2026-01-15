@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Employee List | Payroll System</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+
+    <style>
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --table-hover: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.1);
+            --radius: 10px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+            /* Status Colors */
+            --active-bg: #37BC7D; --active-text: #166534;
+            --suspend-bg: #fee2e2; --suspend-text: #991b1b;
+            --resign-bg: #f1f5f9; --resign-text: #475569;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --table-hover: #334155;
+
+            /* Status Colors Dark */
+            --active-bg: rgba(22, 101, 52, 0.3); --active-text: #4ade80;
+            --suspend-bg: rgba(153, 27, 27, 0.3); --suspend-text: #f87171;
+            --resign-bg: rgba(71, 85, 105, 0.3); --resign-text: #cbd5e1;
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT & CARD
+           ============================================ */
+        .content-header { padding: 20px 0; }
+
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        /* Page Title */
+        .page-title {
+            font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0;
+        }
+
+        /* ============================================
+           3. MODERN TABLE STYLES
+           ============================================ */
+        table.dataTable {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            margin-top: 10px !important;
+            color: var(--text-primary);
+        }
+
+        /* Header Styling */
+        .table thead th {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 15px;
+        }
+
+        /* Body Styling */
+        .table tbody tr {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--table-hover) !important;
+            cursor: pointer;
+        }
+
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-top: none;
+        }
+
+        /* User Profile in Table */
+        .user-avatar {
+            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--border-color); margin-right: 12px;
+        }
+        .user-info h6 { font-weight: 700; margin: 0; color: var(--text-primary); font-size: 0.95rem; }
+        .user-info span { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;
+        }
+        .status-active { background: var(--active-bg); color: var(--active-text); }
+        .status-suspend { background: var(--suspend-bg); color: var(--suspend-text); }
+        .status-resign { background: var(--resign-bg); color: var(--resign-text); }
+
+        /* Soft Action Buttons */
+        .btn-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.2s; border: none; font-size: 0.85rem; margin-right: 5px;
+        }
+
+        /* Light/Dark mode compatible soft buttons */
+        .btn-soft-primary { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
+        .btn-soft-primary:hover { background: #4f46e5; color: #fff; }
+
+        .btn-soft-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .btn-soft-warning:hover { background: #f59e0b; color: #fff; }
+
+        .btn-soft-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-soft-danger:hover { background: #ef4444; color: #fff; }
+
+        .btn-soft-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .btn-soft-success:hover { background: #10b981; color: #fff; }
+
+        body.dark-mode .btn-soft-primary { background: rgba(79, 70, 229, 0.2); color: #818cf8; }
+        body.dark-mode .btn-soft-primary:hover { background: #818cf8; color: #fff; }
+        /* (Similar adjustments happen automatically for other colors via opacity) */
+
+
+        /* ============================================
+           4. MODALS (Clean & Solid)
+           ============================================ */
+        .modal-content {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            color: var(--text-primary);
+        }
+        .modal-header { border-bottom: 1px solid var(--border-color); }
+        .modal-footer { border-top: 1px solid var(--border-color); }
+        .close { color: var(--text-secondary); text-shadow: none; opacity: 1; }
+        .close:hover { color: var(--text-primary); }
+
+        /* Form Inputs in Modal */
+        .form-control-modal {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+        }
+        .form-control-modal:focus {
+            background-color: var(--bg-card);
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+
+        /* DataTables Controls */
+        .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary) !important; font-size: 0.85rem; margin-top: 15px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--bg-body); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-primary); padding: 5px 10px;
+        }
+
+        .page-item .page-link {
+            background: var(--bg-card); border-color: var(--border-color); color: var(--text-secondary);
+        }
+        .page-item.active .page-link {
+            background: var(--primary); border-color: var(--primary); color: #fff;
+        }
+        .page-item.disabled .page-link {
+            background: var(--bg-body); border-color: var(--border-color);
+        }
+
+        /* ============================================
+           5. MOBILE RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .content-header .row { flex-direction: column; text-align: center; gap: 15px; }
+            .content-header .text-right { text-align: center !important; }
+            .btn-add-new { width: 100%; }
+
+            /* Stack buttons in table actions on very small screens */
+            .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+            .btn-icon { margin: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="page-title"><i class="fas fa-users text-primary mr-2"></i>Employee Directory</h1>
+                </div>
+                <div class="col-md-6 text-right">
+                    <a th:href="@{/employees/add}" class="btn btn-primary rounded-pill px-4 shadow-sm btn-add-new"
+                       style="background: var(--primary); border: none; font-weight: 600;">
+                        <i class="fas fa-plus mr-2"></i> Add New Employee
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+
+
+
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="fas fa-ban mr-2"></i> <span th:text="${error}"></span>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="fas fa-check mr-2"></i> <span th:text="${success}"></span>
+            </div>
+
+            <div class="content-card">
+                <div class="table-responsive">
+                    <table id="employeeTable" class="table w-100">
+                        <thead>
+                        <tr>
+                            <th>Employee Details</th>
+                            <th>Designation</th>
+                            <th>Contact Info</th>
+                            <th>Salary</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" style="min-width: 140px;">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="employee : ${listEmployees}" class="clickable-row"
+                            th:data-img="@{${employee.getPhotosImagePath}}"
+                            th:data-name="${employee.name}"
+                            th:data-role="${employee.designation}"
+                            th:data-dept="${employee.department}"
+                            th:data-phone="${employee.phoneNumber}"
+                            th:data-email="${employee.email}"
+                            th:data-address="${employee.address}"
+                            th:data-join="${employee.joiningDate}"
+                            th:data-salary="${#numbers.formatDecimal(employee.basicSalary, 0, 'COMMA', 0, 'POINT')}"
+                            th:data-status="${employee.status}"
+                            th:data-id="${employee.id}"
+                            th:data-edit-url="@{/employees/edit/{id}(id=${employee.id})}">
+
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <img class="user-avatar" th:src="@{${employee.getPhotosImagePath}}">
+                                    <div class="user-info">
+                                        <h6 th:text="${employee.name}">Name</h6>
+                                        <span>ID: #<span th:text="${employee.id}"></span></span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="align-middle">
+                                <span style="font-weight: 600; color: var(--text-primary);" th:text="${employee.designation}">Role</span><br>
+                                <span class="badge" style="background: var(--bg-body); color: var(--primary); border: 1px solid var(--border-color);" th:text="${employee.department}">Dept</span>
+                            </td>
+
+                            <td class="align-middle">
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    <div class="mb-1"><i class="fas fa-phone mr-1 text-success"></i> <span th:text="${employee.phoneNumber}"></span></div>
+                                    <div><i class="fas fa-envelope mr-1 text-primary"></i> <span th:text="${employee.email}"></span></div>
+                                </div>
+                            </td>
+
+                            <td class="align-middle">
+                                <span style="font-weight: 700; color: var(--text-primary);">৳ <span th:text="${#numbers.formatDecimal(employee.basicSalary, 0, 'COMMA', 0, 'POINT')}"></span></span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <span th:if="${employee.status == 'ACTIVE'}" class="status-pill status-active">Active</span>
+                                <span th:if="${employee.status == 'SUSPENDED'}" class="status-pill status-suspend">Suspended</span>
+                                <span th:if="${employee.status == 'RESIGNED'}" class="status-pill status-resign">Resigned</span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <div class="btn-group">
+                                    <a th:href="@{/employees/edit/{id}(id=${employee.id})}" class="btn-icon btn-soft-primary" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+
+                                    <th:block th:if="${employee.status == 'ACTIVE'}">
+                                        <button type="button" class="btn-icon btn-soft-warning btn-penalty"
+                                                th:data-id="${employee.id}" th:data-name="${employee.name}" title="Penalty">
+                                            <i class="fas fa-gavel"></i>
+                                        </button>
+                                        <button type="button" class="btn-icon btn-soft-danger btn-suspend-trigger"
+                                                th:data-id="${employee.id}" th:data-name="${employee.name}" title="Suspend">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </th:block>
+
+                                    <form th:if="${employee.status == 'SUSPENDED'}"
+                                          th:action="@{/admin/activate/{id}(id=${employee.id})}"
+                                          method="post"
+                                          onsubmit="return confirm('Activate this employee?');"
+                                          style="display:inline;">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <button type="submit" class="btn-icon btn-soft-success" title="Activate">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+
+                                    <button type="button" class="btn-icon btn-soft-danger btn-delete-trigger"
+                                            th:data-href="@{/employees/delete/{id}(id=${employee.id})}"
+                                            title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div style="background: var(--bg-body); padding: 30px; border-bottom: 1px solid var(--border-color); border-radius: 10px 10px 0 0; text-align: center; position: relative;">
+                        <button type="button" class="close position-absolute" style="top: 15px; right: 20px;" data-dismiss="modal">&times;</button>
+                        <img src="" id="modalImg"
+                             style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-card); box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <h4 class="font-weight-bold mt-3 mb-1" id="modalName" style="color: var(--text-primary);">Name</h4>
+                        <span id="modalRole" style="color: var(--text-secondary);">Role</span>
+                        <div id="modalStatusBadge" class="mt-2"></div>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="row text-center mb-3">
+                            <div class="col-6 border-right" style="border-color: var(--border-color) !important;">
+                                <small class="text-secondary font-weight-bold text-uppercase">Department</small>
+                                <h6 class="text-primary mt-1" id="modalDept">IT</h6>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-secondary font-weight-bold text-uppercase">Joined</small>
+                                <h6 class="text-success mt-1" id="modalJoin">Date</h6>
+                            </div>
+                        </div>
+                        <hr style="border-color: var(--border-color);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary"><i class="fas fa-phone mr-2"></i> Phone</span>
+                            <span id="modalPhone" style="font-weight: 600; color: var(--text-primary);">...</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary"><i class="fas fa-envelope mr-2"></i> Email</span>
+                            <span id="modalEmail" style="font-weight: 600; color: var(--text-primary);">...</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary"><i class="fas fa-location-arrow mr-2"></i> Address</span>
+                            <span id="modalAddress" style="font-weight: 600; color: var(--text-primary);">...</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary"><i class="fas fa-money-bill-wave mr-2"></i> Salary</span>
+                            <span class="text-success font-weight-bold">৳ <span id="modalSalary">0</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 justify-content-center" style="border-top: 1px solid var(--border-color); background: var(--bg-body);">
+                    <a href="#" id="modalEditBtn" class="btn btn-primary rounded-pill px-4">
+                        <i class="fas fa-user-edit mr-2"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content text-center p-4">
+                <div class="modal-header border-0 justify-content-center pb-0">
+                    <div style="width: 80px; height: 80px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle text-danger fa-3x"></i>
+                    </div>
+                </div>
+                <div class="modal-body pt-3">
+                    <h4 class="font-weight-bold mb-2">Are you sure?</h4>
+                    <p class="text-secondary mb-4">Do you really want to delete this employee? This process cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center gap-2">
+                    <button type="button" class="btn btn-light px-4 font-weight-bold" data-dismiss="modal" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-secondary);">Cancel</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4 font-weight-bold">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="penaltyModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form th:action="@{/penalty/issue}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="modal-header">
+                        <h5 class="modal-title font-weight-bold" style="color: var(--text-primary);"><i class="fas fa-gavel text-warning mr-2"></i>Issue Fine</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: var(--text-secondary);" class="mb-3">Employee: <strong class="text-primary" id="penaltyEmpName"></strong></p>
+                        <input type="hidden" name="employeeId" id="penaltyEmpId">
+
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-secondary">AMOUNT (BDT)</label>
+                            <input type="number" name="amount" class="form-control form-control-modal" placeholder="e.g. 500" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-secondary">REASON</label>
+                            <input type="text" name="reason" class="form-control form-control-modal" placeholder="e.g. Late Attendance" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning font-weight-bold">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="suspendModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="suspendForm" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger font-weight-bold"><i class="fas fa-user-slash mr-2"></i>Suspend Employee</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3" style="color: var(--text-primary);">Are you sure you want to suspend <strong class="text-danger" id="suspendEmpName"></strong>?</p>
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-secondary">REASON FOR SUSPENSION</label>
+                            <textarea name="reason" class="form-control form-control-modal" rows="3" placeholder="Explain why..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger font-weight-bold">Confirm Suspend</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+
+    <script th:inline="javascript">
+        $(function () {
+            // DataTables with minimal features enabled
+            var table = $("#employeeTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                "lengthChange": false, // Hide "Show 10 entries"
+                "pageLength": 10,
+                "columnDefs": [ { "orderable": false, "targets": [0, 5] } ],
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search employees...",
+                    "paginate": { "previous": "<", "next": ">" }
+                }
+            });
+
+            // Adjust search bar style for solid theme
+            $('.dataTables_filter input').addClass('form-control-modal').css('width', '250px');
+
+            // --- Button Logic ---
+            $('#employeeTable tbody').on('click', '.btn-penalty', function(e) {
+                e.stopPropagation();
+                $('#penaltyEmpId').val($(this).data('id'));
+                $('#penaltyEmpName').text($(this).data('name'));
+                $('#penaltyModal').modal('show');
+            });
+
+            $('#employeeTable tbody').on('click', '.btn-suspend-trigger', function(e) {
+                e.stopPropagation();
+                $('#suspendEmpName').text($(this).data('name'));
+                // Suspend action URL is set here: /admin/suspend/{id}
+                $('#suspendForm').attr('action', '/admin/suspend/' + $(this).data('id'));
+                $('#suspendModal').modal('show');
+            });
+
+            // [NEW] DELETE CONFIRMATION LOGIC
+            $('#employeeTable tbody').on('click', '.btn-delete-trigger', function(e) {
+                e.stopPropagation(); // Prevent row click
+                e.preventDefault(); // Prevent default link behavior
+
+                var deleteUrl = $(this).data('href'); // Get URL from data attribute
+                $('#confirmDeleteBtn').attr('href', deleteUrl); // Set it to modal button
+                $('#deleteConfirmModal').modal('show'); // Show modal
+            });
+
+            // Prevent row click when clicking action buttons
+            $('#employeeTable tbody').on('click', '.btn-group a, .btn-group button', function(e) {
+                e.stopPropagation();
+            });
+
+            // --- Row Click (Profile Modal) ---
+            $('#employeeTable tbody').on('click', 'tr.clickable-row', function() {
+                var d = $(this).data();
+
+                $('#modalImg').attr('src', d.img);
+                $('#modalName').text(d.name);
+                $('#modalRole').text(d.role);
+                $('#modalDept').text(d.dept);
+                $('#modalPhone').text(d.phone);
+                $('#modalEmail').text(d.email ? d.email : 'N/A');
+                $('#modalAddress').text(d.address ? d.address : 'N/A');
+                $('#modalJoin').text(d.join);
+                $('#modalSalary').text(d.salary);
+                $('#modalEditBtn').attr('href', d.editUrl);
+
+                var statusBadge = '';
+                if(d.status === 'ACTIVE') statusBadge = '<span class="status-pill status-active">Active</span>';
+                else if(d.status === 'SUSPENDED') statusBadge = '<span class="status-pill status-suspend">Suspended</span>';
+                else statusBadge = '<span class="status-pill status-resign">Resigned</span>';
+                $('#modalStatusBadge').html(statusBadge);
+
+                $('#profileModal').modal('show');
+            });
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

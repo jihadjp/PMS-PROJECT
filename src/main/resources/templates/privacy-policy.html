@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Privacy Policy | Payroll System</title>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.1);
+            --radius: 12px;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+
+            --primary-soft: rgba(79, 70, 229, 0.2);
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 25px 0; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        /* Policy Card */
+        .policy-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 50px;
+            margin-bottom: 30px;
+        }
+
+        /* Header */
+        .policy-header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+        .policy-title { font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; }
+        .last-updated { color: var(--text-secondary); font-size: 0.9rem; font-style: italic; }
+
+        /* Content Typography */
+        .policy-content p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .policy-section-title {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            display: flex; align-items: center;
+        }
+
+        .icon-box {
+            width: 35px; height: 35px; border-radius: 8px;
+            background: var(--primary-soft); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 12px; font-size: 1rem;
+        }
+
+        /* List Styles */
+        .policy-list {
+            list-style: none; padding-left: 10px; margin-bottom: 20px;
+        }
+        .policy-list li {
+            position: relative; padding-left: 25px; margin-bottom: 10px;
+            color: var(--text-secondary); line-height: 1.6;
+        }
+        .policy-list li::before {
+            content: '\f058'; /* FontAwesome check-circle */
+            font-family: 'Font Awesome 5 Free'; font-weight: 900;
+            color: var(--primary);
+            position: absolute; left: 0; top: 2px; font-size: 0.9rem;
+        }
+
+        /* Contact Box */
+        .contact-box {
+            background: var(--primary-soft);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .contact-box h3 { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+        .contact-box p { margin-bottom: 5px; color: var(--text-secondary); }
+        .contact-box a { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .contact-box a:hover { text-decoration: underline; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .policy-card { padding: 30px 20px; }
+            .policy-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <section class="content-header">
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+
+                    <div class="policy-card">
+
+                        <div class="policy-header">
+                            <h1 class="policy-title">Privacy Policy</h1>
+                            <p class="last-updated">Last Updated: December 3, 2025</p>
+                        </div>
+
+                        <div class="policy-content">
+                            <p>Welcome to the <strong>Payroll Management System</strong>. We value your privacy and are committed to protecting your personal and financial information. This Privacy Policy explains how we collect, use, and safeguard your data.</p>
+
+                            <h2 class="policy-section-title">
+                                <div class="icon-box"><i class="fas fa-database"></i></div>
+                                1. Information We Collect
+                            </h2>
+                            <p>To ensure accurate payroll processing, we collect the following types of information:</p>
+                            <ul class="policy-list">
+                                <li><strong>Personal Identification:</strong> Name, Profile Picture, Phone Number, Email Address.</li>
+                                <li><strong>Employment Details:</strong> Designation, Department, Joining Date, Status (Active/Suspended).</li>
+                                <li><strong>Financial Data:</strong> Bank Account Number, Bank Name, Basic Salary, Deductions.</li>
+                                <li><strong>Operational Data:</strong> Daily Attendance logs, Overtime hours, and Penalty records.</li>
+                            </ul>
+
+                            <h2 class="policy-section-title">
+                                <div class="icon-box"><i class="fas fa-cogs"></i></div>
+                                2. How We Use Your Information
+                            </h2>
+                            <p>The collected data is used strictly for internal administrative purposes, including:</p>
+                            <ul class="policy-list">
+                                <li>Calculating monthly salaries, bonuses, and tax deductions automatically.</li>
+                                <li>Generating official payslips and salary sheets.</li>
+                                <li>Tracking employee attendance and working hours.</li>
+                                <li>Managing disciplinary actions and penalties.</li>
+                                <li>Creating system reports for HR and Finance departments.</li>
+                            </ul>
+
+                            <h2 class="policy-section-title">
+                                <div class="icon-box"><i class="fas fa-user-shield"></i></div>
+                                3. Data Security
+                            </h2>
+                            <p>We implement industry-standard security measures to protect your data:</p>
+                            <ul class="policy-list">
+                                <li><strong>Encryption:</strong> User passwords are encrypted using <strong>BCrypt</strong> hashing algorithms.</li>
+                                <li><strong>Access Control:</strong> Role-Based Access Control (RBAC) ensures that only authorized Admins can view sensitive financial data.</li>
+                                <li><strong>Secure Storage:</strong> Profile images and database records are stored in a secured server environment.</li>
+                            </ul>
+
+                            <h2 class="policy-section-title">
+                                <div class="icon-box"><i class="fas fa-share-alt"></i></div>
+                                4. Data Sharing & Disclosure
+                            </h2>
+                            <p>We <strong>do not</strong> sell, trade, or rent your personal identification information to third parties. Data may only be shared with:</p>
+                            <ul class="policy-list">
+                                <li>Bank partners for salary disbursement processing (if integrated).</li>
+                                <li>Legal authorities if required by law.</li>
+                            </ul>
+
+                            <h2 class="policy-section-title">
+                                <div class="icon-box"><i class="fas fa-cookie-bite"></i></div>
+                                5. Cookies & Session Data
+                            </h2>
+                            <p>This system uses session cookies to maintain your login state and ensure security while navigating between pages. These are temporary and are deleted once you log out.</p>
+
+                            <h2 class="policy-section-title">
+                                <div class="icon-box"><i class="fas fa-pen"></i></div>
+                                6. Your Rights
+                            </h2>
+                            <p>As a user of this system, you have the right to:</p>
+                            <ul class="policy-list">
+                                <li>Access your personal profile and salary history via the Employee Portal.</li>
+                                <li>Request corrections to your personal information if it is inaccurate.</li>
+                                <li>Download your monthly payslips for personal records.</li>
+                            </ul>
+
+                            <div class="contact-box">
+                                <h3><i class="fas fa-headset mr-2"></i>Contact Administrator</h3>
+                                <p>If you have any questions about this privacy policy or your data, please contact the HR department.</p>
+                                <p style="margin-top: 10px;">
+                                    Email: <a href="mailto:support@axiomdevs.com"  style="color: #eb7a55;"  th:text="${supportEmail}">support@axiomdevs.com</a>
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

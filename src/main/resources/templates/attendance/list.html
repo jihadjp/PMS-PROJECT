@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Attendance Log | Payroll System</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --table-hover: #f8fafc;
+            --input-bg: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --radius: 10px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+            /* Status Colors */
+            --present-bg: #dcfce7; --present-text: #166534;
+            --absent-bg: #fee2e2; --absent-text: #991b1b;
+            --na-bg: #f1f5f9; --na-text: #475569;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --table-hover: #334155;
+            --input-bg: #0f172a;
+
+            /* Status Colors Dark */
+            --present-bg: rgba(22, 101, 52, 0.3); --present-text: #4ade80;
+            --absent-bg: rgba(153, 27, 27, 0.3); --absent-text: #f87171;
+            --na-bg: rgba(71, 85, 105, 0.3); --na-text: #cbd5e1;
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 20px 0; }
+
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            padding: 20px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0;
+        }
+
+        /* ============================================
+           3. FILTER & STATS
+           ============================================ */
+        .form-control-custom {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+        }
+        .form-control-custom:focus {
+            background-color: var(--bg-card);
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+
+        .stat-badge {
+            display: inline-flex; align-items: center;
+            padding: 8px 15px; border-radius: 8px;
+            font-size: 0.9rem; font-weight: 600;
+            margin-right: 10px; border: 1px solid transparent;
+        }
+        .stat-total { background: var(--input-bg); color: var(--text-secondary); border-color: var(--border-color); }
+        .stat-present { background: var(--present-bg); color: var(--present-text); }
+        .stat-absent { background: var(--absent-bg); color: var(--absent-text); }
+
+        /* ============================================
+           4. TABLE STYLES
+           ============================================ */
+        table.dataTable {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            margin-top: 10px !important;
+            color: var(--text-primary);
+        }
+
+        .table thead th {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 15px;
+        }
+
+        .table tbody tr {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .table tbody tr:hover {
+            background-color: var(--table-hover) !important;
+            cursor: pointer;
+        }
+        .table td {
+            padding: 15px; vertical-align: middle; border-top: none;
+        }
+
+        /* User Info */
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--border-color); margin-right: 12px;
+        }
+        .user-info h6 { font-weight: 700; margin: 0; color: var(--text-primary); font-size: 0.9rem; }
+        .user-info span { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;
+        }
+        .status-present { background: var(--present-bg); color: var(--present-text); }
+        .status-absent { background: var(--absent-bg); color: var(--absent-text); }
+        .status-na { background: var(--na-bg); color: var(--text-secondary); }
+
+        /* ============================================
+           5. MODAL
+           ============================================ */
+        .modal-content {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            color: var(--text-primary);
+        }
+        .modal-header { border-bottom: none; padding-bottom: 0; }
+        .modal-footer { border-top: 1px solid var(--border-color); }
+        .close { color: var(--text-secondary); text-shadow: none; opacity: 1; }
+
+        /* DataTables Controls */
+        .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary) !important; font-size: 0.85rem; margin-top: 15px;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--bg-body); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-primary); padding: 5px 10px;
+        }
+        .page-item .page-link { background: var(--bg-card); border-color: var(--border-color); color: var(--text-secondary); }
+        .page-item.active .page-link { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .content-header .row { text-align: center; gap: 10px; }
+            .content-header .text-right { text-align: center !important; }
+            .stats-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+            .stat-badge { width: 100%; justify-content: center; margin: 0; }
+            .filter-form { flex-direction: column; width: 100%; }
+            .filter-form .input-group { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="page-title"><i class="fas fa-clipboard-check mr-2 text-primary"></i>Attendance Log</h1>
+                </div>
+                <div class="col-md-6 text-right">
+                    <a th:href="@{/attendance/mark}" class="btn btn-primary rounded-pill px-4 shadow-sm"
+                       style="background: var(--primary); border: none; font-weight: 600;">
+                        <i class="fas fa-plus-circle mr-2"></i> Take Attendance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="content-card">
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <form th:action="@{/attendance/list}" method="get" class="form-inline filter-form">
+                            <label class="mr-2 font-weight-bold text-secondary">Date:</label>
+                            <div class="input-group">
+                                <input type="date" name="date" class="form-control form-control-custom" th:value="${selectedDate}">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary" style="background: var(--primary); border: none;">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-md-7 text-md-right stats-container">
+                        <div class="stat-badge stat-total">
+                            <i class="fas fa-users mr-2"></i> Total: <b class="ml-1" th:text="${totalCount}">0</b>
+                        </div>
+                        <div class="stat-badge stat-present">
+                            <i class="fas fa-check-circle mr-2"></i> Present: <b class="ml-1" th:text="${presentCount}">0</b>
+                        </div>
+                        <div class="stat-badge stat-absent">
+                            <i class="fas fa-times-circle mr-2"></i> Absent: <b class="ml-1" th:text="${absentCount}">0</b>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+                        Records for <span style="color: var(--primary);" th:text="${selectedDate}"></span>
+                    </h3>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="attendanceTable" class="table w-100">
+                        <thead>
+                        <tr>
+                            <th>Employee Profile</th>
+                            <th>Department</th>
+                            <th>Date Logged</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Overtime</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${attendanceList}" class="clickable-row"
+                            th:data-img="@{${row.employee.getPhotosImagePath}}"
+                            th:data-name="${row.employee.name}"
+                            th:data-role="${row.employee.designation}"
+                            th:data-dept="${row.employee.department}"
+                            th:data-phone="${row.employee.phoneNumber}"
+                            th:data-email="${row.employee.email}"
+                            th:data-salary="${#numbers.formatDecimal(row.employee.basicSalary, 0, 'COMMA', 0, 'POINT')}"
+                            th:data-edit-url="@{/employees/edit/{id}(id=${row.employee.id})}">
+
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <img class="user-avatar" th:src="@{${row.employee.getPhotosImagePath}}">
+                                    <div class="user-info">
+                                        <h6 th:text="${row.employee.name}">Name</h6>
+                                        <span>ID: #<span th:text="${row.employee.id}"></span></span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="align-middle">
+                                <span class="badge" style="background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                      th:text="${row.employee.department}">IT</span>
+                            </td>
+
+                            <td class="align-middle" style="color: var(--text-secondary);">
+                                <i class="far fa-clock mr-1"></i> <span th:text="${selectedDate}"></span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <span th:if="${row.status == 'Present'}" class="status-pill status-present">Present</span>
+                                <span th:if="${row.status == 'Absent'}" class="status-pill status-absent">Absent</span>
+                                <span th:if="${row.status == 'Not Marked'}" class="status-pill status-na">Not Marked</span>
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <span th:if="${row.overtime > 0}" style="color: var(--primary); font-weight: 700;">
+                                    +<span th:text="${row.overtime}"></span> hrs
+                                </span>
+                                <span th:if="${row.overtime == 0}" style="color: var(--text-secondary);">-</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div style="background: var(--bg-body); padding: 30px; border-bottom: 1px solid var(--border-color); border-radius: 10px 10px 0 0; text-align: center; position: relative;">
+                        <button type="button" class="close position-absolute" style="top: 15px; right: 20px;" data-dismiss="modal">&times;</button>
+                        <img src="" id="modalImg"
+                             style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-card); box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <h4 class="font-weight-bold mt-3 mb-1" id="modalName" style="color: var(--text-primary);">Name</h4>
+                        <span id="modalRole" style="color: var(--text-secondary);">Role</span>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="row text-center mb-3">
+                            <div class="col-6 border-right" style="border-color: var(--border-color) !important;">
+                                <small class="text-secondary font-weight-bold text-uppercase">Department</small>
+                                <h6 class="text-primary mt-1" id="modalDept">IT</h6>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-secondary font-weight-bold text-uppercase">Salary</small>
+                                <h6 class="text-success mt-1">৳ <span id="modalSalary">0</span></h6>
+                            </div>
+                        </div>
+                        <hr style="border-color: var(--border-color);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary"><i class="fas fa-phone mr-2"></i> Phone</span>
+                            <span id="modalPhone" style="font-weight: 600; color: var(--text-primary);">...</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary"><i class="fas fa-envelope mr-2"></i> Email</span>
+                            <span id="modalEmail" style="font-weight: 600; color: var(--text-primary);">...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 justify-content-center" style="border-top: 1px solid var(--border-color); background: var(--bg-body);">
+                    <a href="#" id="modalEditBtn" class="btn btn-primary rounded-pill px-4">
+                        <i class="fas fa-user-edit mr-2"></i> View Full Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(function () {
+            $("#attendanceTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                "ordering": true,
+                "lengthChange": true,
+                "pageLength": 10,
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search records...",
+                    "paginate": { "previous": "<", "next": ">" }
+                }
+            });
+
+            // Adjust search bar
+            $('.dataTables_filter input').addClass('form-control-custom').css('width', '250px');
+
+            // Row Click for Modal
+            $('.clickable-row').click(function() {
+                var d = $(this).data();
+                $('#modalImg').attr('src', d.img);
+                $('#modalName').text(d.name);
+                $('#modalRole').text(d.role);
+                $('#modalDept').text(d.dept);
+                $('#modalPhone').text(d.phone);
+                $('#modalEmail').text(d.email ? d.email : 'N/A');
+                $('#modalSalary').text(d.salary);
+                $('#modalEditBtn').attr('href', d.editUrl);
+                $('#profileModal').modal('show');
+            });
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

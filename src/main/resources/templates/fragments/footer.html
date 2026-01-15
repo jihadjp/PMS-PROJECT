@@ -1,0 +1,102 @@
+<footer th:fragment="footer" class="main-footer">
+
+    <style>
+        /* ============================================
+           PROFESSIONAL FOOTER STYLES
+           ============================================ */
+        .main-footer {
+            background-color: var(--bg-card); /* Matches the card background */
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Links Styling */
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Divider pipe */
+        .separator {
+            color: var(--border-color);
+        }
+
+        /* Company Name */
+        .brand-text {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Version Badge */
+        .version-badge {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            .footer-links {
+                justify-content: center;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+
+    <div class="container-fluid">
+        <div class="footer-content">
+
+            <div class="footer-left">
+                <strong>Copyright &copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span>
+                    <a th:href="@{/home}" class="brand-text" th:text="${teamName}">>Axiom Devs</a>.</strong>
+                All rights reserved.
+            </div>
+
+            <div class="footer-right">
+                <div class="footer-links">
+                    <a th:href="@{/privacy-policy}" class="footer-link">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a th:href="@{/terms-of-use}" class="footer-link">Terms of Use</a>
+                    <span class="separator">|</span>
+                    <a th:href="@{/help}" class="footer-link">Support</a>
+                    <span class="separator">|</span>
+                    <span class="version-badge">v1.0.0</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</footer>

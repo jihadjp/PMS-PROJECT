@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Settings | Payroll System</title>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+            /* Alert Colors */
+            --success-soft-bg: #ecfdf5; --success-soft-text: #047857;
+            --danger-soft-bg: #fef2f2; --danger-soft-text: #b91c1c;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+
+            --success-soft-bg: rgba(6, 95, 70, 0.3); --success-soft-text: #34d399;
+            --danger-soft-bg: rgba(153, 27, 27, 0.3); --danger-soft-text: #fca5a5;
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 25px 0; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        /* Card Style */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            max-width: 500px; /* Centered card width */
+            margin: 0 auto;
+        }
+
+        .card-header-custom {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+            display: flex; align-items: center;
+        }
+        .card-header-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        .card-body-custom { padding: 30px; }
+
+        /* ============================================
+           3. FORM ELEMENTS
+           ============================================ */
+        label {
+            font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 10px 15px;
+            height: 45px;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            background-color: var(--bg-card);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Buttons */
+        .btn-primary-block {
+            background: var(--primary); color: white; border: none;
+            padding: 12px; width: 100%; border-radius: 8px;
+            font-weight: 600; font-size: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+            transition: 0.2s;
+        }
+        .btn-primary-block:hover {
+            background: #4338ca; transform: translateY(-2px);
+        }
+
+        /* Soft Alerts */
+        .alert-soft-success {
+            background: var(--success-soft-bg); color: var(--success-soft-text);
+            border: 1px solid transparent; border-radius: 8px; font-weight: 500;
+        }
+        .alert-soft-danger {
+            background: var(--danger-soft-bg); color: var(--danger-soft-text);
+            border: 1px solid transparent; border-radius: 8px; font-weight: 500;
+        }
+        .close { opacity: 0.7; text-shadow: none; }
+        .close:hover { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+        <div class="container-fluid text-center">
+            <h1 class="page-title">System Settings</h1>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="row justify-content-center mb-3">
+                <div class="col-md-6">
+                    <div th:if="${success}" class="alert alert-soft-success alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-check-circle mr-2"></i> <span th:text="${success}"></span>
+                    </div>
+                    <div th:if="${error}" class="alert alert-soft-danger alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-exclamation-circle mr-2"></i> <span th:text="${error}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <h3 class="card-header-title">
+                        <i class="fas fa-lock mr-2 text-primary"></i> Change Password
+                    </h3>
+                </div>
+
+                <div class="card-body-custom">
+                    <form th:action="@{/admin/change-password}" method="post">
+
+                        <div class="form-group mb-4">
+                            <label>Current Password</label>
+                            <input type="password" name="currentPassword" class="form-control" placeholder="Enter current password" required/>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label>New Password</label>
+                            <input type="password" name="newPassword" class="form-control" placeholder="Enter new password" required/>
+                        </div>
+
+                        <button type="submit" class="btn-primary-block">
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Profile | Payroll System</title>
+    <style>
+        /* ============================================
+           1. SHARED THEME VARIABLES
+           ============================================ */
+        :root {
+            /* Light Mode */
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+
+            /* Brand Colors */
+            --primary: #4f46e5;
+            --primary-soft: rgba(79, 70, 229, 0.1);
+            --success-soft: rgba(16, 185, 129, 0.1);
+            --success-text: #166534;
+            --radius: 12px;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+
+            --primary-soft: rgba(79, 70, 229, 0.2);
+            --success-soft: rgba(22, 163, 74, 0.2);
+            --success-text: #4ade80;
+        }
+
+        /* ============================================
+           2. PAGE LAYOUT
+           ============================================ */
+        .content-header { padding: 25px 0; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        /* Card Common Style */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        /* ============================================
+           3. PROFILE CARD (Left Side)
+           ============================================ */
+        .profile-banner {
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            position: relative;
+        }
+
+        .profile-img-wrap {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .profile-avatar {
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bg-card);
+            background: var(--bg-card);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .profile-info {
+            padding: 60px 20px 20px 20px;
+            text-align: center;
+        }
+
+        .profile-name { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+        .profile-role {
+            background: var(--primary-soft); color: var(--primary);
+            padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+        }
+
+        .info-list { padding: 0; margin: 0; list-style: none; }
+        .info-item {
+            padding: 15px 25px;
+            border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.9rem;
+        }
+        .info-label { color: var(--text-secondary); font-weight: 500; }
+        .info-value { color: var(--text-primary); font-weight: 600; }
+
+        .status-badge {
+            background: var(--success-soft); color: var(--success-text);
+            padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+        }
+
+
+        /* ============================================
+           2. TOAST NOTIFICATION STYLES
+           ============================================ */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+
+        .toast {
+            background-color: #fff;
+            border: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .toast-header {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 10px 15px;
+        }
+
+
+        /* ============================================
+           4. FORM CARD (Right Side)
+           ============================================ */
+        .card-header-custom {
+            padding: 20px 25px; border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+        .card-header-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        .card-body-custom { padding: 30px; }
+
+        /* Form Inputs */
+        label {
+            font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 10px 15px;
+            height: 45px;
+        }
+        .form-control:focus {
+            background-color: var(--bg-card);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Custom File Input */
+        .custom-file-label {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            height: 45px;
+            padding: 10px 15px;
+        }
+        .custom-file-label::after {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            height: 43px;
+            padding: 10px 15px;
+            border-radius: 0 7px 7px 0;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary); border: none; padding: 10px 25px;
+            font-weight: 600; border-radius: 8px; height: 45px;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:hover { background: #4338ca; transform: translateY(-1px); }
+
+        /* Alerts */
+        .alert-soft-success {
+            background: var(--success-soft); color: var(--success-text); border: 1px solid transparent;
+            border-radius: 8px; font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="page-title">My Profile</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right" style="background: transparent; padding: 0;">
+                        <li class="breadcrumb-item"><a href="#" style="color: var(--text-secondary);">Home</a></li>
+                        <li class="breadcrumb-item active" style="color: var(--primary); font-weight: 600;">Profile</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="toast-container">
+
+                <div th:if="${error}" id="errorToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+                    <div class="toast-header bg-danger text-white">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <strong class="mr-auto">Error</strong>
+                        <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="toast-body text-danger font-weight-bold">
+                        <span th:text="${error}"></span>
+                    </div>
+                </div>
+
+                <div th:if="${success}" id="successToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+                    <div class="toast-header bg-success text-white">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <strong class="mr-auto">Success</strong>
+                        <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="toast-body text-success font-weight-bold">
+                        <span th:text="${success}"></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-4">
+                    <div class="content-card">
+                        <div class="profile-banner">
+                            <div class="profile-img-wrap">
+                                <img class="profile-avatar"
+                                     th:src="@{${user.getPhotosImagePath()}}"
+                                     alt="User Profile">
+                            </div>
+                        </div>
+
+                        <div class="profile-info">
+                            <h3 class="profile-name" th:text="${user.fullName}">User Name</h3>
+                            <span class="profile-role" th:text="${user.role}">ADMIN</span>
+                        </div>
+
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-label">Username</span>
+                                <span class="info-value" th:text="${user.username}">admin</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Account Status</span>
+                                <span class="status-badge">Active</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Last Login</span>
+                                <span class="info-value" style="font-size: 0.85rem;"
+                                      th:text="${user.lastLoginTime != null ? #temporals.format(user.lastLoginTime, 'dd-MMM-yyyy hh:mm a') : 'N/A'}">
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="content-card">
+                        <div class="card-header-custom">
+                            <h3 class="card-header-title"><i class="fas fa-user-cog mr-2 text-primary"></i>Update Information</h3>
+                        </div>
+                        <div class="card-body-custom">
+                            <form th:action="@{/admin/update-profile}" method="post" enctype="multipart/form-data">
+
+                                <div class="form-group row">
+                                    <label for="inputName" class="col-sm-3 col-form-label">Full Name</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="inputName" name="fullName"
+                                               th:value="${user.fullName}" required placeholder="Enter full name">
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label for="inputEmail" class="col-sm-3 col-form-label">Email Address</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="inputEmail" name="email"
+                                               th:value="${user.email}" required placeholder="Enter email address">
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label for="profileImage" class="col-sm-3 col-form-label">Profile Photo</label>
+                                    <div class="col-sm-9">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="profileImage" name="image" accept="image/png, image/jpeg">
+                                            <label class="custom-file-label" for="profileImage">Choose new photo...</label>
+                                        </div>
+                                        <small class="text-secondary mt-2 d-block">
+                                            <i class="fas fa-info-circle mr-1"></i> Supports JPG, PNG. Max size: 2MB
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row mt-4 mb-0">
+                                    <div class="offset-sm-3 col-sm-9">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save mr-2"></i> Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="script">
+    <script>
+        $(document).ready(function () {
+            // Update file input label with selected filename
+            $('.custom-file-input').on('change', function () {
+                var fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').addClass("selected").html(fileName);
+            });
+
+            // 2. Toast Notification Trigger
+            // যদি পেজে error বা success টোস্ট থাকে, তাহলে সেটি অটোমেটিক ওপেন হবে
+            if ($('#errorToast').length) {
+                $('#errorToast').toast('show');
+            }
+            if ($('#successToast').length) {
+                $('#successToast').toast('show');
+            }
+
+        });
+    </script>
+</th:block>
+
+</body>
+</html>
