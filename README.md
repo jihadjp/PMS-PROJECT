@@ -379,5 +379,5 @@ If this project helped you, please give it a ⭐️ on GitHub!
 <div align="center">
   <strong>Built with ❤️ using Spring Boot</strong>
   <br>
-  <sub>Version 1.0.0 | © 2024 Axiom Devs</sub>
+  <sub>Version 1.0.0 | © 2025 Axiom Devs</sub>
 </div>
